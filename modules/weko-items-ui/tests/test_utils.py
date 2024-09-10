@@ -8153,12 +8153,14 @@ def test__get_max_export_items(app,users):
         with patch("flask_login.utils._get_user", return_value=users[2]["obj"]):
             assert _get_max_export_items() == size
     
-    with patch("flask_sqlalchemy._QueryProperty.__get__") as mock_query:
+    # with patch("flask_sqlalchemy._QueryProperty.__get__") as mock_query:
+    with patch("weko_items_ui.utils.db.session.query", side_effect=Exception("test_error")):
         size = WEKO_ITEMS_UI_MAX_EXPORT_NUM_PER_ROLE[users[2]['obj'].roles[0].name]
         app.config['WEKO_ITEMS_UI_DEFAULT_MAX_EXPORT_NUM'] = 20
-        #app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///dummy.db"
-        #mock_query.return_value.all.side_effect = Exception("test_error")
-        mock_query.return_value.all.side_effect  = Exception("test_error")
+        
+        # app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///dummy.db"
+        # mock_query.return_value.all.side_effect = Exception("test_error")
+        # mock_query.return_value.all.side_effect = Exception("test_error")
         with patch("flask_login.utils._get_user", return_value=users[2]["obj"]):
             assert _get_max_export_items() == 20
             
