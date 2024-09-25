@@ -640,10 +640,12 @@ class TestWekoDeposit:
 
     # def publish_without_commit(self, pid=None, id_=None):
     # .tox/c1/bin/pytest --cov=weko_deposit tests/test_api.py::TestWekoDeposit::test_publish_without_commit -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-deposit/.tox/c1/tmp
-    def test_publish_without_commit(self,app,location,es_records,db):
+    def test_publish_without_commit(self,app,location,es_records):
         with patch('weko_deposit.api.weko_logger') as mock_logger:
             with app.test_request_context():
                 es = Elasticsearch("http://{}:9200".format(app.config["SEARCH_ELASTIC_HOSTS"]))
+                
+                # テストケース1
                 # deposit['recid']='2'
                 deposit = WekoDeposit.create({})
                 assert deposit['_deposit']['id']
@@ -652,38 +654,41 @@ class TestWekoDeposit:
                 deposit.publish_without_commit()
                 assert deposit['_deposit']['id']
                 assert 'published' == deposit.status
-                assert deposit.revision_id==2
+                assert deposit.revision_id == 2
 
-                # todo5
-                # id = uuid.uuid4()
-                # deposit = WekoDeposit.create({'_buckets': {'deposit': '093782df-f0fc-4560-84f7-140e13ca7172'}, '$schema': 'http://localhost/schemas/deposits/deposit-v1.0.0_test.json', 'recid': '2', 'control_number': '1', '_deposit': {'id': '2', 'status': 'draft', 'owners': []}})
+                # テストケース2
+                deposit = WekoDeposit.create({})
+                assert deposit['_deposit']['id']
+                assert 'draft' == deposit.status
+                assert 0 == deposit.revision_id
+                
+                # self.data を None に設定
+                deposit.data = None
+
                 indexer, records = es_records
-                # deposit = WekoDeposit.create({})
-                # assert deposit['_deposit']['id']
-                # assert 'draft' == deposit.status
-                # assert 0 == deposit.revision_id
-                deposit = records[1]["deposit"]
-                # deposit["recid"]="10"
                 deposit["$schema"] = "https://127.0.0.1/schema/deposits/deposit-v1.0.0.json"
                 deposit["control_number"] = "1"
-                db.session.commit()
                 deposit.publish_without_commit()
                 assert deposit['_deposit']['id']
                 assert 'published' == deposit.status
-                assert deposit.revision_id==2
-                # assert deposit['_deposit']['id']
-                # assert 'draft' == deposit.status
-                # assert deposit.revision_id==0
+                assert deposit.revision_id == 2
+                assert deposit.data is not None 
 
-                # deposit = WekoDeposit.create({'_buckets': {'deposit': '093782df-f0fc-4560-84f7-140e13ca7172'}, 'recid': '1', 'control_number': '1', '_deposit': {'id': '1', 'status': 'draft', 'owners': []}})
-                # # deposit = WekoDeposit.create({})
-                # # assert deposit['_deposit']['id']
-                # # assert 'draft' == deposit.status
-                # # assert 0 == deposit.revision_id
-                # deposit.publish_without_commit()
-                # assert deposit['_deposit']['id']
-                # assert 'published' == deposit.status
-                # assert deposit.revision_id==2
+                # テストケース3
+                deposit = WekoDeposit.create({})
+                assert deposit['_deposit']['id']
+                assert 'draft' == deposit.status
+                assert 0 == deposit.revision_id
+                
+                indexer, records = es_records
+                deposit = records[1]["deposit"]
+                deposit["$schema"] = None
+                deposit["control_number"] = "1"
+                deposit.publish_without_commit()
+                assert deposit['_deposit']['id']
+                assert 'published' == deposit.status
+                assert deposit.revision_id == 2
+                assert deposit["$schema"] is not None 
 
                 mock_logger.assert_any_call(key='WEKO_COMMON_IF_ENTER', branch=mock.ANY)
                 mock_logger.assert_any_call(key='WEKO_COMMON_RETURN_VALUE', value=mock.ANY)
