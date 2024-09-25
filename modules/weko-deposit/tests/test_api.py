@@ -345,7 +345,7 @@ class TestWekoIndexer:
 
             # todo2
             # indexer['']
-            ret = indexer.get_pid_by_es_scroll(None)
+            ret = indexer.get_pid_by_es_scroll( 'non_existent_path_12345' )
 
             # assert isinstance(next(ret),list)
             # assert isinstance(next(ret),dict)
