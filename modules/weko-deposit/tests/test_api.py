@@ -1610,6 +1610,13 @@ class TestWekoDeposit:
 
             assert deposit.merge_data_to_record_without_version(recid, keep_version=True)
 
+            indexer, records = es_records
+            record = records[8]
+            deposit = record['deposit']
+            recid = record['recid']
+
+            assert deposit.merge_data_to_record_without_version(recid)
+
             mock_logger.assert_any_call(key='WEKO_COMMON_IF_ENTER', branch=mock.ANY)
             mock_logger.assert_any_call(key='WEKO_COMMON_RETURN_VALUE', value=mock.ANY)
             mock_logger.reset_mock()
@@ -1630,7 +1637,7 @@ class TestWekoDeposit:
             mock_logger.reset_mock()
     # def delete_content_files(self):
     # .tox/c1/bin/pytest --cov=weko_deposit tests/test_api.py::TestWekoDeposit::test_delete_content_files -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-deposit/.tox/c1/tmp
-    def test_delete_content_files(sel,app,db,location,es_records):
+    def test_delete_content_files(sel,app,db,location,es_records, es_records_4,es_records_2):
         with patch('weko_deposit.api.weko_logger') as mock_logger:
             indexer, records = es_records
             record = records[0]
@@ -1641,6 +1648,22 @@ class TestWekoDeposit:
             deposit.jrc = copy.deepcopy(ret['_source'])
             deposit.delete_content_files()
             ret['_source']['content'][0].pop('file')
+            assert deposit.jrc==ret['_source']
+
+            indexer, records = es_records_4
+            record = records[0]
+            deposit = record['deposit']
+            ret = indexer.get_metadata_by_item_id(deposit.id)
+            deposit.jrc = copy.deepcopy(ret['_source'])
+            deposit.delete_content_files()
+
+            indexer, records = es_records_2
+            record = records[0]
+            deposit = record['deposit']
+            # del deposit['date']['file']
+            ret = indexer.get_metadata_by_item_id(deposit.id)
+            deposit.jrc = copy.deepcopy(ret['_source'])
+            deposit.delete_content_files()
             assert deposit.jrc==ret['_source']
 
             mock_logger.assert_any_call(key='WEKO_COMMON_FOR_START')
