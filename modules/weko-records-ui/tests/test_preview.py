@@ -6,17 +6,20 @@ from weko_records_ui.preview import preview, decode_name, zip_preview, children_
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_preview.py -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 # def preview(pid, record, template=None, **kwargs):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_preview.py::test_preview -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
+# def test_preview(app,records,users,client):
 def test_preview(app,records):
     @app.route('/record/<pid_value>/file_preview/<path:filename>')
     def view1(parameter0):
         return ''
-
+    # from invenio_accounts.testutils import login_user_via_session
+    # login_user_via_session(client=client, email=users[0]["email"])
     indexer, results = records
     record = results[0]['record']
     filename = results[0]['filename']
     recid = results[0]['recid']
     template = 'invenio_records_ui/detail.html'
 
+    # with pytest.raises(Exception):
     with app.test_request_context('/record/{}/file_preview/{}?allow_aggs=True'.format(recid.pid_value,filename)):
         assert "<title>Preview</title>" in preview(record.pid,record,template)
 

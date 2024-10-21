@@ -1,0 +1,222 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.7, pytest-7.4.4, pluggy-0.13.1 -- /code/modules/weko-records-ui/.tox/c1/bin/python
+cachedir: .pytest_cache
+rootdir: /code/modules/weko-records-ui
+plugins: cov-5.0.0
+collecting ... collected 3 items
+
+tests/test_weko_records_ui.py::test_version PASSED
+tests/test_weko_records_ui.py::test_init PASSED
+tests/test_weko_records_ui.py::test_wekorecordsCitesREST PASSED<unknown>:105: SyntaxWarning: invalid escape sequence '\d'
+/code/modules/weko-records-ui/weko_records_ui/views.py:105: SyntaxWarning: invalid escape sequence '\d'
+  pattern = ".*/record/\d+/files/.*"
+<unknown>:105: SyntaxWarning: invalid escape sequence '\d'
+/code/modules/weko-records-ui/weko_records_ui/views.py:105: SyntaxWarning: invalid escape sequence '\d'
+  pattern = ".*/record/\d+/files/.*"
+<unknown>:105: SyntaxWarning: invalid escape sequence '\d'
+
+
+=============================== warnings summary ===============================
+.tox/c1/lib/python3.12/site-packages/invenio_search/ext.py:17
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/invenio_search/ext.py:17: DeprecationWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html
+    from pkg_resources import (
+
+.tox/c1/lib/python3.12/site-packages/pkg_resources/__init__.py:3120
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/pkg_resources/__init__.py:3120: DeprecationWarning: Deprecated call to `pkg_resources.declare_namespace('sphinxcontrib')`.
+  Implementing implicit namespace packages (as specified in PEP 420) is preferred to `pkg_resources.declare_namespace`. See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+    declare_namespace(pkg)
+
+.tox/c1/lib/python3.12/site-packages/pkg_resources/__init__.py:3120
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/pkg_resources/__init__.py:3120: DeprecationWarning: Deprecated call to `pkg_resources.declare_namespace('zope')`.
+  Implementing implicit namespace packages (as specified in PEP 420) is preferred to `pkg_resources.declare_namespace`. See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+    declare_namespace(pkg)
+
+.tox/c1/lib/python3.12/site-packages/passlib/utils/__init__.py:854
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/passlib/utils/__init__.py:854: DeprecationWarning: 'crypt' is deprecated and slated for removal in Python 3.13
+    from crypt import crypt as _crypt
+
+.tox/c1/lib/python3.12/site-packages/flask_sqlalchemy/__init__.py:14
+.tox/c1/lib/python3.12/site-packages/flask_sqlalchemy/__init__.py:14
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/flask_sqlalchemy/__init__.py:14: DeprecationWarning: '_app_ctx_stack' is deprecated and will be removed in Flask 2.3.
+    from flask import _app_ctx_stack, abort, current_app, request
+
+.tox/c1/lib/python3.12/site-packages/flask/scaffold.py:49
+.tox/c1/lib/python3.12/site-packages/flask/scaffold.py:49
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/flask/scaffold.py:49: DeprecationWarning: 'before_app_first_request' is deprecated and will be removed in Flask 2.3. Use 'record_once' instead to run setup code when registering the blueprint.
+    return f(self, *args, **kwargs)
+
+.tox/c1/lib/python3.12/site-packages/jsonresolver/contrib/jsonschema.py:31
+.tox/c1/lib/python3.12/site-packages/jsonresolver/contrib/jsonschema.py:31
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/jsonresolver/contrib/jsonschema.py:31: DeprecationWarning: jsonschema.RefResolver is deprecated as of v4.18.0, in favor of the https://github.com/python-jsonschema/referencing library, which provides more compliant referencing behavior as well as more flexible APIs for customization. A future release will remove RefResolver. Please file a feature request (on referencing) if you are missing an API for the kind of customization you need.
+    from jsonschema import RefResolver as _RefResolver
+
+../invenio-records/invenio_records/resolver.py:14
+../invenio-records/invenio_records/resolver.py:14
+  /code/modules/invenio-records/invenio_records/resolver.py:14: DeprecationWarning: jsonschema.exceptions.RefResolutionError is deprecated as of version 4.18.0. If you wish to catch potential reference resolution errors, directly catch referencing.exceptions.Unresolvable.
+    from jsonschema import RefResolutionError, RefResolver
+
+../invenio-records/invenio_records/resolver.py:14
+../invenio-records/invenio_records/resolver.py:14
+  /code/modules/invenio-records/invenio_records/resolver.py:14: DeprecationWarning: jsonschema.RefResolver is deprecated as of v4.18.0, in favor of the https://github.com/python-jsonschema/referencing library, which provides more compliant referencing behavior as well as more flexible APIs for customization. A future release will remove RefResolver. Please file a feature request (on referencing) if you are missing an API for the kind of customization you need.
+    from jsonschema import RefResolutionError, RefResolver
+
+.tox/c1/lib/python3.12/site-packages/webargs/compat.py:8
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/webargs/compat.py:8: DeprecationWarning: The '__version__' attribute is deprecated and will be removed in in a future version. Use feature detection or 'importlib.metadata.version("marshmallow")' instead.
+    MARSHMALLOW_VERSION_INFO = tuple(LooseVersion(ma.__version__).version)  # type: tuple
+
+.tox/c1/lib/python3.12/site-packages/webargs/compat.py:8
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/webargs/compat.py:8: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    MARSHMALLOW_VERSION_INFO = tuple(LooseVersion(ma.__version__).version)  # type: tuple
+
+.tox/c1/lib/python3.12/site-packages/webargs/__init__.py:13
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/webargs/__init__.py:13: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    __version_info__ = tuple(LooseVersion(__version__).version)
+
+.tox/c1/lib/python3.12/site-packages/sqlalchemy_utils/types/encrypted/encrypted_type.py:463
+.tox/c1/lib/python3.12/site-packages/sqlalchemy_utils/types/encrypted/encrypted_type.py:463
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/sqlalchemy_utils/types/encrypted/encrypted_type.py:463: DeprecationWarning: The 'EncryptedType' class will change implementation from 'LargeBinary' to 'String' in a future version. Use 'StringEncryptedType' to use the 'String' implementation.
+    warnings.warn(
+
+../weko-admin/weko_admin/ext.py:27
+../weko-admin/weko_admin/ext.py:27
+  /code/modules/weko-admin/weko_admin/ext.py:27: DeprecationWarning: '_request_ctx_stack' is deprecated and will be removed in Flask 2.3.
+    from flask import _request_ctx_stack, current_app, request, session
+
+.tox/c1/lib/python3.12/site-packages/flask_limiter/errors.py:10
+.tox/c1/lib/python3.12/site-packages/flask_limiter/errors.py:10
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/flask_limiter/errors.py:10: DeprecationWarning: distutils Version classes are deprecated. Use packaging.version instead.
+    if LooseVersion(werkzeug_version) < LooseVersion("0.9"):  # pragma: no cover
+
+.tox/c1/lib/python3.12/site-packages/fs/__init__.py:4
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/fs/__init__.py:4: DeprecationWarning: Deprecated call to `pkg_resources.declare_namespace('fs')`.
+  Implementing implicit namespace packages (as specified in PEP 420) is preferred to `pkg_resources.declare_namespace`. See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+    __import__("pkg_resources").declare_namespace(__name__)  # type: ignore
+
+.tox/c1/lib/python3.12/site-packages/fs/opener/__init__.py:6
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/fs/opener/__init__.py:6: DeprecationWarning: Deprecated call to `pkg_resources.declare_namespace('fs.opener')`.
+  Implementing implicit namespace packages (as specified in PEP 420) is preferred to `pkg_resources.declare_namespace`. See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+    __import__("pkg_resources").declare_namespace(__name__)  # type: ignore
+
+.tox/c1/lib/python3.12/site-packages/pkg_resources/__init__.py:2532
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/pkg_resources/__init__.py:2532: DeprecationWarning: Deprecated call to `pkg_resources.declare_namespace('fs')`.
+  Implementing implicit namespace packages (as specified in PEP 420) is preferred to `pkg_resources.declare_namespace`. See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+    declare_namespace(parent)
+
+../invenio-deposit/invenio_deposit/views/rest.py:341
+  /code/modules/invenio-deposit/invenio_deposit/views/rest.py:341: RemovedInMarshmallow4Warning: Passing field metadata as keyword arguments is deprecated. Use the explicit `metadata=...` argument instead. Additional metadata: {'location': 'headers', 'load_from': 'version_id'}
+    version_id=fields.UUID(
+
+.tox/c1/lib/python3.12/site-packages/tika/__init__.py:20
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/tika/__init__.py:20: DeprecationWarning: Deprecated call to `pkg_resources.declare_namespace('tika')`.
+  Implementing implicit namespace packages (as specified in PEP 420) is preferred to `pkg_resources.declare_namespace`. See https://setuptools.pypa.io/en/latest/references/keywords.html#keyword-namespace-packages
+    __import__('pkg_resources').declare_namespace(__name__)
+
+../invenio-records-rest/invenio_records_rest/serializers/citeproc.py:57
+  /code/modules/invenio-records-rest/invenio_records_rest/serializers/citeproc.py:57: RemovedInMarshmallow4Warning: The 'missing' argument to fields is deprecated. Use 'load_default' instead.
+    "style": fields.Str(missing=_default_style),
+
+../invenio-records-rest/invenio_records_rest/serializers/citeproc.py:58
+  /code/modules/invenio-records-rest/invenio_records_rest/serializers/citeproc.py:58: RemovedInMarshmallow4Warning: The 'missing' argument to fields is deprecated. Use 'load_default' instead.
+    "locale": fields.Str(missing=_default_locale),
+
+.tox/c1/lib/python3.12/site-packages/werkzeug/routing/rules.py:726: 3 warnings
+tests/test_weko_records_ui.py: 106 warnings
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/werkzeug/routing/rules.py:726: DeprecationWarning: ast.Str is deprecated and will be removed in Python 3.14; use ast.Constant instead
+    parts = parts or [ast.Str("")]
+
+.tox/c1/lib/python3.12/site-packages/werkzeug/routing/rules.py:723: 6 warnings
+tests/test_weko_records_ui.py: 442 warnings
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/werkzeug/routing/rules.py:723: DeprecationWarning: ast.Str is deprecated and will be removed in Python 3.14; use ast.Constant instead
+    _convert(elem) if is_dynamic else ast.Str(s=elem)
+
+../../../usr/local/lib/python3.12/ast.py:587: 6 warnings
+tests/test_weko_records_ui.py: 442 warnings
+  /usr/local/lib/python3.12/ast.py:587: DeprecationWarning: Attribute s is deprecated and will be removed in Python 3.14; use value instead
+    return Constant(*args, **kwargs)
+
+.tox/c1/lib/python3.12/site-packages/werkzeug/routing/rules.py:730: 10 warnings
+tests/test_weko_records_ui.py: 778 warnings
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/werkzeug/routing/rules.py:730: DeprecationWarning: ast.Str is deprecated and will be removed in Python 3.14; use ast.Constant instead
+    if isinstance(p, ast.Str) and isinstance(ret[-1], ast.Str):
+
+.tox/c1/lib/python3.12/site-packages/werkzeug/routing/rules.py:731: 8 warnings
+tests/test_weko_records_ui.py: 608 warnings
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/werkzeug/routing/rules.py:731: DeprecationWarning: Attribute s is deprecated and will be removed in Python 3.14; use value instead
+    ret[-1] = ast.Str(ret[-1].s + p.s)
+
+.tox/c1/lib/python3.12/site-packages/werkzeug/routing/rules.py:731: 4 warnings
+tests/test_weko_records_ui.py: 304 warnings
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/werkzeug/routing/rules.py:731: DeprecationWarning: ast.Str is deprecated and will be removed in Python 3.14; use ast.Constant instead
+    ret[-1] = ast.Str(ret[-1].s + p.s)
+
+tests/conftest.py:158
+  /code/modules/weko-records-ui/tests/conftest.py:158: PytestDeprecationWarning: @pytest.yield_fixture is deprecated.
+  Use @pytest.fixture instead; they are the same.
+    @pytest.yield_fixture()
+
+tests/conftest.py:330
+  /code/modules/weko-records-ui/tests/conftest.py:330: PytestDeprecationWarning: @pytest.yield_fixture is deprecated.
+  Use @pytest.fixture instead; they are the same.
+    @pytest.yield_fixture()
+
+tests/conftest.py:379
+  /code/modules/weko-records-ui/tests/conftest.py:379: PytestDeprecationWarning: @pytest.yield_fixture is deprecated.
+  Use @pytest.fixture instead; they are the same.
+    @pytest.yield_fixture()
+
+tests/conftest.py:391
+  /code/modules/weko-records-ui/tests/conftest.py:391: PytestDeprecationWarning: @pytest.yield_fixture is deprecated.
+  Use @pytest.fixture instead; they are the same.
+    @pytest.yield_fixture()
+
+tests/test_weko_records_ui.py::test_init
+tests/test_weko_records_ui.py::test_init
+tests/test_weko_records_ui.py::test_init
+tests/test_weko_records_ui.py::test_init
+tests/test_weko_records_ui.py::test_wekorecordsCitesREST
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/flask/helpers.py:611: DeprecationWarning: 'pkgutil.get_loader' is deprecated and slated for removal in Python 3.14; use importlib.util.find_spec() instead
+    loader = pkgutil.get_loader(import_name)
+
+tests/test_weko_records_ui.py: 10 warnings
+  /usr/local/lib/python3.12/pkgutil.py:291: DeprecationWarning: 'pkgutil.find_loader' is deprecated and slated for removal in Python 3.14; use importlib.util.find_spec() instead
+    return find_loader(fullname)
+
+tests/test_weko_records_ui.py::test_init
+tests/test_weko_records_ui.py::test_init
+tests/test_weko_records_ui.py::test_init
+tests/test_weko_records_ui.py::test_init
+tests/test_weko_records_ui.py::test_wekorecordsCitesREST
+  /code/modules/weko-records-ui/.tox/c1/lib/python3.12/site-packages/flask/scaffold.py:833: DeprecationWarning: 'pkgutil.get_loader' is deprecated and slated for removal in Python 3.14; use importlib.util.find_spec() instead
+    loader = pkgutil.get_loader(root_mod_name)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+
+---------- coverage: platform linux, python 3.12.7-final-0 -----------
+Name                             Stmts   Miss Branch BrPart  Cover
+------------------------------------------------------------------
+weko_records_ui/__init__.py          3      0      0      0   100%
+weko_records_ui/admin.py           128     87     46      1    30%
+weko_records_ui/api.py              83     68     12      0    16%
+weko_records_ui/bundles.py           9      9      0      0     0%
+weko_records_ui/captcha.py          83     69     16      0    14%
+weko_records_ui/config.py          102      0      0      0   100%
+weko_records_ui/errors.py           62     12      8      0    71%
+weko_records_ui/ext.py              50     13     24      1    68%
+weko_records_ui/fd.py              274    164    106     14    34%
+weko_records_ui/ipaddr.py           36     29     12      0    15%
+weko_records_ui/logger.py            9      9      2      0     0%
+weko_records_ui/models.py          275    133     62      2    54%
+weko_records_ui/pdf.py             413    385    151      0     5%
+weko_records_ui/permissions.py     254    159    132     15    30%
+weko_records_ui/preview.py          60     60     22      0     0%
+weko_records_ui/rest.py            571     91    254     20    84%
+weko_records_ui/scopes.py            5      0      0      0   100%
+weko_records_ui/utils.py          1183    960    608     25    15%
+weko_records_ui/version.py           1      0      0      0   100%
+weko_records_ui/views.py           616    501    298      1    21%
+weko_records_ui/webpack.py           2      2      0      0     0%
+------------------------------------------------------------------
+TOTAL                             4219   2751   1753     79    32%
+Coverage HTML written to dir htmlcov
+
+======================= 3 passed, 2771 warnings in 2.40s =======================
