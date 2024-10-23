@@ -25,10 +25,10 @@ import os
 import shutil
 import tempfile
 import uuid
+import pytest
 from datetime import date, datetime, timedelta
 from os.path import join
 from time import sleep
-import pytest
 import requests
 from opensearchpy import OpenSearch
 from opensearchpy.exceptions import RequestError
@@ -38,8 +38,7 @@ from flask_babel import lazy_gettext as _
 from flask_celeryext import FlaskCeleryExt
 from flask_login import LoginManager, current_user, login_user
 from flask_menu import Menu
-from mock import Mock, patch, MagicMock
-from pytest_mock import mocker
+from unittest.mock import patch, MagicMock
 from simplekv.memory.redisstore import RedisStore
 from six import BytesIO
 from sqlalchemy import event
@@ -307,7 +306,8 @@ def base_app(instance_path, search_class, request):
         SEARCH_UI_SEARCH_INDEX="test-weko",
         # SEARCH_ELASTIC_HOSTS=os.environ.get("INVENIO_ELASTICSEARCH_HOST"),
         SEARCH_INDEX_PREFIX="{}-".format("test"),
-        SEARCH_CLIENT_CONFIG={"http_auth":(os.environ['INVENIO_OPENSEARCH_USER'],os.environ['INVENIO_OPENSEARCH_PASS']),"use_ssl":True, "verify_certs":False},
+        # SEARCH_CLIENT_CONFIG={"http_auth":(os.environ['INVENIO_OPENSEARCH_USER'],os.environ['INVENIO_OPENSEARCH_PASS']),"use_ssl":True, "verify_certs":False},
+        SEARCH_CLIENT_CONFIG={"http_auth":(os.environ.get('INVENIO_OPENSEARCH_USER', 'invenio'),os.environ.get('INVENIO_OPENSEARCH_PASS', 'openpass123!')),"use_ssl":True, "verify_certs":False},
         OAISERVER_ID_PREFIX="oai:inveniosoftware.org:recid/",
         OAISERVER_RECORD_INDEX="_all",
         OAISERVER_REGISTER_SET_SIGNALS=True,
@@ -593,6 +593,11 @@ def base_app(instance_path, search_class, request):
         WEKO_OPENSEARCH_SYSTEM_SHORTNAME="WEKO",
         WEKO_BUCKET_QUOTA_SIZE=WEKO_BUCKET_QUOTA_SIZE,
         WEKO_MAX_FILE_SIZE=WEKO_MAX_FILE_SIZE,
+        WEKO_SEARCH_TYPE_INDEX = "index",
+        WEKO_RECORDS_UI_EMAIL_ITEM_KEYS=[
+                'creatorMails', 'contributorMails', 'mails'],
+        WEKO_SEARCH_UI_BULK_EXPORT_MSG = "MSG_EXPORT_ALL",
+        WEKO_SEARCH_UI_BULK_EXPORT_RUN_MSG = "RUN_MSG_EXPORT_ALL",
         WEKO_OPENSEARCH_SYSTEM_DESCRIPTION=(
             "WEKO - NII Scholarly and Academic Information Navigator"
         ),
@@ -643,6 +648,7 @@ def base_app(instance_path, search_class, request):
         },
         WEKO_SEARCH_TYPE_KEYWORD="keyword",
         WEKO_SEARCH_UI_SEARCH_TEMPLATE="weko_search_ui/search.html",
+        SEARCH_UI_SEARCH_TEMPLATE = "weko_search_ui/search.html",
         WEKO_INDEX_TREE_INDEX_ADMIN_TEMPLATE="weko_index_tree/admin/index_edit_setting.html",
         WEKO_INDEX_TREE_LIST_API="/api/tree",
         WEKO_INDEX_TREE_API="/api/tree/index/",
@@ -693,7 +699,7 @@ def base_app(instance_path, search_class, request):
     InvenioFilesREST(app_)
     InvenioDeposit(app_)
     WekoRecords(app_)
-    WekoSearchUI(app_)
+    # WekoSearchUI(app_)
     WekoWorkflow(app_)
     WekoGroups(app_)
     WekoAdmin(app_)
@@ -1632,11 +1638,11 @@ def communities3(app, db, user, indices):
 @pytest.fixture()
 def mock_users():
     """Create mock users."""
-    mock_auth_user = Mock()
+    mock_auth_user = MagicMock()
     mock_auth_user.get_id = lambda: "123"
     mock_auth_user.is_authenticated = True
 
-    mock_anon_user = Mock()
+    mock_anon_user = MagicMock()
     mock_anon_user.is_authenticated = False
     return {"anonymous": mock_anon_user, "authenticated": mock_auth_user}
 
@@ -1724,7 +1730,7 @@ def generate_events(
 
             yield build_event(True)
 
-    mock_queue = Mock()
+    mock_queue = MagicMock()
     mock_queue.consume.return_value = generator_list()
     # mock_queue.routing_key = 'stats-file-download'
     mock_queue.routing_key = "generate-sample"
@@ -1890,7 +1896,7 @@ def db_itemtype(app, db, make_itemtype):
         "render": "tests/data/itemtype_render.json",
         "mapping":"tests/data/itemtype_mapping.json"
     }
-    
+
     return make_itemtype(itemtype_id, itemtype_data)
 
 
@@ -2174,8 +2180,8 @@ def test_importdata():
 
 
 @pytest.fixture()
-def mocker_itemtype(mocker):
-    item_type = Mock()
+def mocker_itemtype():
+    item_type = MagicMock()
     filepath = os.path.join(
         os.path.dirname(os.path.realpath(__file__)), "item_type/15_render.json"
     )
@@ -2200,7 +2206,7 @@ def mocker_itemtype(mocker):
     item_type.item_type_name.name = "デフォルトアイテムタイプ（フル）"
     item_type.item_type_name.item_type.first().id = 15
 
-    mocker.patch("weko_records.api.ItemTypes.get_by_id", return_value=item_type)
+    patch("weko_records.api.ItemTypes.get_by_id", return_value=item_type)
 
 
 @pytest.fixture()
@@ -2618,7 +2624,7 @@ def doi_records(app, db, identifier, indextree, location, db_itemtype, db_oaisch
         results.append(
             make_record(db, indexer, i, filepath, filename, mimetype, "xyz.ndl")
         )
-        
+
         i = 5
         filename = "helloworld.pdf"
         mimetype = "application/pdf"
@@ -3895,7 +3901,7 @@ def make_itemtype(app,db):
             version_id=1,
             is_deleted=False,
         )
-        
+
         if "mapping" in datas:
             item_type_mapping = dict()
             with open(datas["mapping"], "r") as f:
@@ -3906,11 +3912,11 @@ def make_itemtype(app,db):
         with db.session.begin_nested():
             db.session.add(item_type_name)
             db.session.add(item_type)
-            
+
         db.session.commit()
         result["item_type_name"] = item_type_name
         result["item_type"] = item_type
-        
+
         return result
     return factory
 

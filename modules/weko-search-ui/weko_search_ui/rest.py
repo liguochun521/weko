@@ -261,6 +261,7 @@ class IndexSearchResource(ContentNegotiatedMethodView):
         search_obj = self.search_class()
         search = search_obj.with_preference_param().params(version=True)
         search = search[(page - 1) * size : page * size]
+
         search = search.params(track_total_hits=True)
         search, qs_kwargs = self.search_factory(self, search)
         query = request.values.get("q")
@@ -274,6 +275,7 @@ class IndexSearchResource(ContentNegotiatedMethodView):
             search = search.post_filter({"terms": {query_key: params[param]}})
 
         search_result = search.execute()
+
         # Generate links for prev/next
         urlkwargs.update(
             size=size,
@@ -286,8 +288,11 @@ class IndexSearchResource(ContentNegotiatedMethodView):
             links["prev"] = url_for(
                 "weko_search_rest.recid_index", page=page - 1, **urlkwargs
             )
+
         if (
-            size * page < search_result.hits.total.value
+
+            # size * page < search_result.hits.total.value
+            size * page < search_result.hits.total
             and size * page < self.max_result_window
         ):
             links["next"] = url_for(
@@ -680,14 +685,16 @@ class IndexSearchResourceAPI(ContentNegotiatedMethodView):
             indent = 4 if request.args.get('pretty') == 'true' else None
 
             cursor = None
-            if search_results['hits']['total']['value']:
+            # if search_results['hits']['total']['value']:
+            if search_results['hits']['total']:
                 sort_key = search_results['hits']['hits'][-1].get('sort')
                 if sort_key:
                     cursor = sort_key[0]
 
             # Create result
             result = {
-                'total_results': search_results['hits']['total']['value'],
+                # 'total_results': search_results['hits']['total']['value'],
+                'total_results': search_results['hits']['total'],
                 'count_results': len(rocrate_list),
                 'cursor': cursor,
                 'page': page,

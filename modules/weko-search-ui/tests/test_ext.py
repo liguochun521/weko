@@ -15,7 +15,7 @@ from weko_search_ui.ext import WekoSearchUI, WekoSearchREST
 def test_WekoSearchUI(i18n_app, app):
     test = WekoSearchUI(i18n_app)
     assert test
-    
+
 def test_WekoSearchUI_2(i18n_app, app):
     app.config.pop("INDEX_IMG")
     test = WekoSearchUI(app)

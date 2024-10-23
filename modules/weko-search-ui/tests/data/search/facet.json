@@ -1,4 +1,6 @@
 {
+    "test-weko": {"test-weko":"test"},
+    "test-test-weko": {"test-weko":"test"},
     "tenant1-weko": {
         "aggs": {
             "Data Language": {

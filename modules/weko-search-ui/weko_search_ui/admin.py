@@ -331,7 +331,7 @@ class ItemImportView(BaseView):
         workflow = WorkFlow()
         workflows = workflow.get_workflow_list()
         workflows_js = [get_content_workflow(item) for item in workflows]
-        
+
         form =FlaskForm(request.form)
 
         return self.render(
@@ -344,9 +344,9 @@ class ItemImportView(BaseView):
     @expose("/check", methods=["POST"])
     def check(self) -> jsonify:
         """Validate item import."""
-        
+
         validate_csrf_header(request)
-        
+
         data = request.form
         file = request.files["file"] if request.files else None
 
@@ -711,7 +711,7 @@ class ItemImportView(BaseView):
                 ),
             },
         )
-    
+
     @expose("/check_import_is_available", methods=["GET"])
     def check_import_available(self):
         try:

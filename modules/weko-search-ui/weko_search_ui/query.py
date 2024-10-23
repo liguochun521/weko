@@ -95,7 +95,7 @@ def get_permission_filter(index_id: str = None):
             terms = dsl.Q("terms", path=term_list)
     else:
         terms = dsl.Q("terms", path=is_perm_indexes)
-    
+
     if is_admin:
         mst.append(status)
     else:
@@ -106,7 +106,6 @@ def get_permission_filter(index_id: str = None):
 
     if is_perm:
         user_id, result = check_permission_user()
-
         if result:
             user_terms = dsl.Q("terms", publish_status=[
                 PublishStatus.PUBLIC.value, PublishStatus.PRIVATE.value])

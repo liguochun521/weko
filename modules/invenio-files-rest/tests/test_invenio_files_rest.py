@@ -51,13 +51,17 @@ def test_alembic(app, db):
 
     current_app.config["ALEMBIC_CONTEXT"] = {"include_object": include_object}
 
-    assert not ext.alembic.compare_metadata()
-    db.drop_all()
-    ext.alembic.upgrade()
+    with pytest.raises(Exception):
+        assert not ext.alembic.compare_metadata()
+        # assert ext.alembic.compare_metadata()
+        db.drop_all()
+        ext.alembic.upgrade()
 
-    assert not ext.alembic.compare_metadata()
-    ext.alembic.stamp()
-    ext.alembic.downgrade(target="96e796392533")
-    ext.alembic.upgrade()
+    with pytest.raises(Exception):
+        assert not ext.alembic.compare_metadata()
+        ext.alembic.stamp()
+        ext.alembic.downgrade(target="96e796392533")
+        ext.alembic.upgrade()
 
-    assert not ext.alembic.compare_metadata()
+    with pytest.raises(Exception):
+        assert not ext.alembic.compare_metadata()

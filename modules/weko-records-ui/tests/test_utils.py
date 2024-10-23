@@ -72,6 +72,8 @@ from datetime import datetime ,timedelta
 
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 
+
+@pytest.mark.group1
 # def is_future(settings=None):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_is_future -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_is_future(app):
@@ -82,6 +84,8 @@ def test_is_future(app):
     assert is_future(dt(2100, 1, 1)) == True
     assert is_future('2000-01-01 00:00') == True
 
+
+@pytest.mark.group1
 # def check_items_settings(settings=None):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_check_items_settings -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_check_items_settings(app,db_admin_settings):
@@ -163,7 +167,7 @@ def test_check_items_settings(app,db_admin_settings):
         assert current_app.config["ITEM_SEARCH_FLG"]==setting['items_search_author']
         assert current_app.config["OPEN_DATE_DISPLAY_FLG"]==setting['item_display_open_date']
 
-
+@pytest.mark.group1
 # def get_record_permalink(record):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_record_permalink -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_record_permalink(app,records):
@@ -174,7 +178,7 @@ def test_get_record_permalink(app,records):
     record = results[1]["record"]
     assert get_record_permalink(record) == None
 
-
+@pytest.mark.group1
 # def get_groups_price(record: dict) -> list:
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_groups_price -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_groups_price(app,records):
@@ -183,6 +187,7 @@ def test_get_groups_price(app,records):
     assert get_groups_price(record)==[]
 
 
+@pytest.mark.group1
 # def get_billing_file_download_permission(groups_price: list) -> dict:
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_billing_file_download_permission -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_billing_file_download_permission(users):
@@ -190,7 +195,7 @@ def test_get_billing_file_download_permission(users):
     with patch("flask_login.utils._get_user", return_value=users[1]["obj"]):
         assert get_billing_file_download_permission(groups_price)=={'003.jpg': False}
 
-
+@pytest.mark.group1
 # def get_min_price_billing_file_download(groups_price: list,
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_min_price_billing_file_download -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_min_price_billing_file_download(users):
@@ -210,12 +215,13 @@ def test_get_min_price_billing_file_download(users):
         except:
             pass
 
-
+@pytest.mark.group2
 # def is_billing_item(item_type_id):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_is_billing_item -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_is_billing_item(app,itemtypes):
     assert is_billing_item(1)==False
 
+@pytest.mark.group2
 # def soft_delete(recid):
 #     def get_cache_data(key: str):
 #     def check_an_item_is_locked(item_id=None):
@@ -233,10 +239,12 @@ def test_soft_delete(app, records, users):
         data1 = MagicMock()
         data1.exists = False
 
-        with patch("weko_records_ui.utils.PIDVersioning", return_value=data1):
+        # with patch("weko_records_ui.utils.PIDVersioning", return_value=data1):
+        with patch("weko_records_ui.utils.PIDNodeVersioning", return_value=data1):
             assert soft_delete(record.pid.pid_value) == None
 
 
+@pytest.mark.group2
 # def restore(recid):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_restore -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_restore(app,records):
@@ -250,7 +258,7 @@ def test_restore(app,records):
     assert restore(record.pid.pid_value)==None
     assert recid.status == PIDStatus.REGISTERED
 
-
+@pytest.mark.group2
 # def get_list_licence():
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_list_licence -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_list_licence(app):
@@ -258,6 +266,7 @@ def test_get_list_licence(app):
         assert get_list_licence()==[{'value': 'license_free', 'name': 'write your own license'}, {'value': 'license_12', 'name': 'Creative Commons CC0 1.0 Universal Public Domain Designation'}, {'value': 'license_6', 'name': 'Creative Commons Attribution 3.0 Unported (CC BY 3.0)'}, {'value': 'license_7', 'name': 'Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0)'}, {'value': 'license_8', 'name': 'Creative Commons Attribution-NoDerivs 3.0 Unported (CC BY-ND 3.0)'}, {'value': 'license_9', 'name': 'Creative Commons Attribution-NonCommercial 3.0 Unported (CC BY-NC 3.0)'}, {'value': 'license_10', 'name': 'Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported (CC BY-NC-SA 3.0)'}, {'value': 'license_11', 'name': 'Creative Commons Attribution-NonCommercial-NoDerivs 3.0 Unported (CC BY-NC-ND 3.0)'}, {'value': 'license_0', 'name': 'Creative Commons Attribution 4.0 International (CC BY 4.0)'}, {'value': 'license_1', 'name': 'Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)'}, {'value': 'license_2', 'name': 'Creative Commons Attribution-NoDerivatives 4.0 International (CC BY-ND 4.0)'}, {'value': 'license_3', 'name': 'Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)'}, {'value': 'license_4', 'name': 'Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)'}, {'value': 'license_5', 'name': 'Creative Commons Attribution-NonCommercial-NoDerivatives 4.0 International (CC BY-NC-ND 4.0)'}]
 
 
+@pytest.mark.group2
 # def get_license_pdf(license, item_metadata_json, pdf, file_item_id, footer_w,
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_license_pdf -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_license_pdf(app):
@@ -281,6 +290,7 @@ def test_get_license_pdf(app):
         get_license_pdf("license_free",item_metadata_json,pdf,file_item_id,footer_w,footer_h,cc_logo_xposition,item)
 
 
+@pytest.mark.group2
 # def get_pair_value(name_keys, lang_keys, datas):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_pair_value -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_pair_value(app):
@@ -292,7 +302,7 @@ def test_get_pair_value(app):
         assert name== ('ja_conference paperITEM00000001(public_open_access_open_access_simple)', 'ja')
         assert lang== ('en_conference paperITEM00000001(public_open_access_simple)', 'en')
 
-
+@pytest.mark.group3
 # def hide_item_metadata(record, settings=None, item_type_mapping=None,
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_hide_item_metadata -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_hide_item_metadata(app,records,users):
@@ -306,7 +316,7 @@ def test_hide_item_metadata(app,records,users):
     with patch("weko_items_ui.utils.hide_meta_data_for_role", return_value=True):
         assert hide_item_metadata(record)==True
 
-
+@pytest.mark.group3
 # def hide_item_metadata_email_only(record):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_hide_item_metadata_email_only -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_hide_item_metadata_email_only(app,records,users):
@@ -320,7 +330,7 @@ def test_hide_item_metadata_email_only(app,records,users):
         with patch("weko_items_ui.utils.hide_meta_data_for_role", return_value=True):
             assert hide_item_metadata_email_only(record)==True
 
-
+@pytest.mark.group3
 # def hide_by_file(item_metadata):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_hide_by_file -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_hide_by_file(app,records):
@@ -340,7 +350,7 @@ def test_hide_by_file(app,records):
     }
     assert hide_by_file(data1)
 
-
+@pytest.mark.group3
 # def hide_by_email(item_metadata):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_hide_by_email -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_hide_by_email(app,records):
@@ -412,7 +422,7 @@ def test_hide_by_email(app,records):
     test_record = copy.deepcopy(record)
     assert hide_by_email(test_record)==record
 
-
+@pytest.mark.group3
 # def hide_by_itemtype(item_metadata, hidden_items):
 #     def del_hide_sub_metadata(keys, metadata):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_hide_by_itemtype -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
@@ -432,7 +442,7 @@ def test_hide_by_itemtype(app, records):
 
     # assert hide_by_itemtype(copy.deepcopy(record),[])=={'id': '1', 'pid': {'type': 'recid', 'value': '1', 'revision_id': 0}, 'path': ['2'], 'owner': '1', 'title': 'ja_conference paperITEM00000009(public_open_access_open_access_simple)', 'owners': [1], 'status': 'draft', '$schema': 'https://localhost:8443/items/jsonschema/1', 'pubdate': '2021-08-06', 'feedback_mail_list': [{'email': 'wekosoftware@nii.ac.jp', 'author_id': ''}], 'item_1617186331708': [{'subitem_1551255647225': 'ja_conference paperITEM00000009(public_open_access_open_access_simple)', 'subitem_1551255648112': 'ja'}, {'subitem_1551255647225': 'en_conference paperITEM00000009(public_open_access_simple)', 'subitem_1551255648112': 'en'}], 'item_1617186385884': [{'subitem_1551255720400': 'Alternative Title', 'subitem_1551255721061': 'en'}, {'subitem_1551255720400': 'Alternative Title', 'subitem_1551255721061': 'ja'}], 'item_1617186419668': [{'givenNames': [{'givenName': '太郎', 'givenNameLang': 'ja'}, {'givenName': 'タロウ', 'givenNameLang': 'ja-Kana'}, {'givenName': 'Taro', 'givenNameLang': 'en'}], 'familyNames': [{'familyName': '情報', 'familyNameLang': 'ja'}, {'familyName': 'ジョウホウ', 'familyNameLang': 'ja-Kana'}, {'familyName': 'Joho', 'familyNameLang': 'en'}], 'creatorMails': [{'creatorMail': 'wekosoftware@nii.ac.jp'}], 'creatorNames': [{'creatorName': '情報, 太郎', 'creatorNameLang': 'ja'}, {'creatorName': 'ジョウホウ, タロウ', 'creatorNameLang': 'ja-Kana'}, {'creatorName': 'Joho, Taro', 'creatorNameLang': 'en'}], 'nameIdentifiers': [{'nameIdentifier': '4', 'nameIdentifierScheme': 'WEKO'}, {'nameIdentifier': 'xxxxxxx', 'nameIdentifierURI': 'https://orcid.org/', 'nameIdentifierScheme': 'ORCID'}, {'nameIdentifier': 'xxxxxxx', 'nameIdentifierURI': 'https://ci.nii.ac.jp/', 'nameIdentifierScheme': 'CiNii'}, {'nameIdentifier': 'zzzzzzz', 'nameIdentifierURI': 'https://kaken.nii.ac.jp/', 'nameIdentifierScheme': 'KAKEN2'}], 'creatorAffiliations': [{'affiliationNames': [{'affiliationName': 'University', 'affiliationNameLang': 'en'}], 'affiliationNameIdentifiers': [{'affiliationNameIdentifier': '0000000121691048', 'affiliationNameIdentifierURI': 'http://isni.org/isni/0000000121691048', 'affiliationNameIdentifierScheme': 'ISNI'}]}]}, {'givenNames': [{'givenName': '太郎', 'givenNameLang': 'ja'}, {'givenName': 'タロ', 'givenNameLang': 'ja-Kana'}, {'givenName': 'Taro', 'givenNameLang': 'en'}], 'familyNames': [{'familyName': '情報', 'familyNameLang': 'ja'}, {'familyName': 'ジウホウ', 'familyNameLang': 'ja-Kana'}, {'familyName': 'Joho', 'familyNameLang': 'en'}], 'creatorMails': [{'creatorMail': 'wekosoftware@nii.ac.jp'}], 'creatorNames': [{'creatorName': '情報, 太郎', 'creatorNameLang': 'ja'}, {'creatorName': 'ジョウホウ, タロウ', 'creatorNameLang': 'ja-Kana'}, {'creatorName': 'Joho, Taro', 'creatorNameLang': 'en'}], 'nameIdentifiers': [{'nameIdentifier': 'xxxxxxx', 'nameIdentifierURI': 'https://orcid.org/', 'nameIdentifierScheme': 'ORCID'}, {'nameIdentifier': 'xxxxxxx', 'nameIdentifierURI': 'https://ci.nii.ac.jp/', 'nameIdentifierScheme': 'CiNii'}, {'nameIdentifier': 'zzzzzzz', 'nameIdentifierURI': 'https://kaken.nii.ac.jp/', 'nameIdentifierScheme': 'KAKEN2'}]}, {'givenNames': [{'givenName': '太郎', 'givenNameLang': 'ja'}, {'givenName': 'タロウ', 'givenNameLang': 'ja-Kana'}, {'givenName': 'Taro', 'givenNameLang': 'en'}], 'familyNames': [{'familyName': '情報', 'familyNameLang': 'ja'}, {'familyName': 'ジョウホウ', 'familyNameLang': 'ja-Kana'}, {'familyName': 'Joho', 'familyNameLang': 'en'}], 'creatorMails': [{'creatorMail': 'wekosoftware@nii.ac.jp'}], 'creatorNames': [{'creatorName': '情報, 太郎', 'creatorNameLang': 'ja'}, {'creatorName': 'ジョウホウ, タロウ', 'creatorNameLang': 'ja-Kana'}, {'creatorName': 'Joho, Taro', 'creatorNameLang': 'en'}], 'nameIdentifiers': [{'nameIdentifier': 'xxxxxxx', 'nameIdentifierURI': 'https://orcid.org/', 'nameIdentifierScheme': 'ORCID'}, {'nameIdentifier': 'xxxxxxx', 'nameIdentifierURI': 'https://ci.nii.ac.jp/', 'nameIdentifierScheme': 'CiNii'}, {'nameIdentifier': 'zzzzzzz', 'nameIdentifierURI': 'https://kaken.nii.ac.jp/', 'nameIdentifierScheme': 'KAKEN2'}]}], 'item_1617186476635': {'subitem_1522299639480': 'open access', 'subitem_1600958577026': 'http://purl.org/coar/access_right/c_abf2'}, 'item_1617186499011': [{'subitem_1522650717957': 'ja', 'subitem_1522650727486': 'http://localhost', 'subitem_1522651041219': 'Rights Information'}], 'item_1617186609386': [{'subitem_1522299896455': 'ja', 'subitem_1522300014469': 'Other', 'subitem_1522300048512': 'http://localhost/', 'subitem_1523261968819': 'Sibject1'}], 'item_1617186626617': [{'subitem_description': 'Description\nDescription<br/>Description', 'subitem_description_type': 'Abstract', 'subitem_description_language': 'en'}, {'subitem_description': '概要\n概要\n概要\n概要', 'subitem_description_type': 'Abstract', 'subitem_description_language': 'ja'}], 'item_1617186643794': [{'subitem_1522300295150': 'en', 'subitem_1522300316516': 'Publisher'}], 'item_1617186660861': [{'subitem_1522300695726': 'Available', 'subitem_1522300722591': '2021-06-30'}], 'item_1617186702042': [{'subitem_1551255818386': 'jpn'}], 'item_1617186783814': [{'subitem_identifier_uri': 'http://localhost', 'subitem_identifier_type': 'URI'}], 'item_1617186859717': [{'subitem_1522658018441': 'en', 'subitem_1522658031721': 'Temporal'}], 'item_1617186882738': [{'subitem_geolocation_place': [{'subitem_geolocation_place_text': 'Japan'}]}], 'item_1617186901218': [{'subitem_1522399143519': {'subitem_1522399281603': 'ISNI', 'subitem_1522399333375': 'http://xxx'}, 'subitem_1522399412622': [{'subitem_1522399416691': 'en', 'subitem_1522737543681': 'Funder Name'}], 'subitem_1522399571623': {'subitem_1522399585738': 'Award URI', 'subitem_1522399628911': 'Award Number'}, 'subitem_1522399651758': [{'subitem_1522721910626': 'en', 'subitem_1522721929892': 'Award Title'}]}], 'item_1617186920753': [{'subitem_1522646500366': 'ISSN', 'subitem_1522646572813': 'xxxx-xxxx-xxxx'}], 'item_1617186941041': [{'subitem_1522650068558': 'en', 'subitem_1522650091861': 'Source Title'}], 'item_1617186959569': {'subitem_1551256328147': '1'}, 'item_1617186981471': {'subitem_1551256294723': '111'}, 'item_1617186994930': {'subitem_1551256248092': '12'}, 'item_1617187024783': {'subitem_1551256198917': '1'}, 'item_1617187045071': {'subitem_1551256185532': '3'}, 'item_1617187112279': [{'subitem_1551256126428': 'Degree Name', 'subitem_1551256129013': 'en'}], 'item_1617187136212': {'subitem_1551256096004': '2021-06-30'}, 'item_1617187187528': [{'subitem_1599711633003': [{'subitem_1599711636923': 'Conference Name', 'subitem_1599711645590': 'ja'}], 'subitem_1599711655652': '1', 'subitem_1599711660052': [{'subitem_1599711680082': 'Sponsor', 'subitem_1599711686511': 'ja'}], 'subitem_1599711699392': {'subitem_1599711704251': '2020/12/11', 'subitem_1599711712451': '1', 'subitem_1599711727603': '12', 'subitem_1599711731891': '2000', 'subitem_1599711735410': '1', 'subitem_1599711739022': '12', 'subitem_1599711743722': '2020', 'subitem_1599711745532': 'ja'}, 'subitem_1599711758470': [{'subitem_1599711769260': 'Conference Venue', 'subitem_1599711775943': 'ja'}], 'subitem_1599711788485': [{'subitem_1599711798761': 'Conference Place', 'subitem_1599711803382': 'ja'}], 'subitem_1599711813532': 'JPN'}], 'item_1617258105262': {'resourceuri': 'http://purl.org/coar/resource_type/c_5794', 'resourcetype': 'conference paper'}, 'item_1617265215918': {'subitem_1522305645492': 'AO', 'subitem_1600292170262': 'http://purl.org/coar/version/c_b1a7d7d4d402bcce'}, 'item_1617349709064': [{'givenNames': [{'givenName': '太郎', 'givenNameLang': 'ja'}, {'givenName': 'タロウ', 'givenNameLang': 'ja-Kana'}, {'givenName': 'Taro', 'givenNameLang': 'en'}], 'familyNames': [{'familyName': '情報', 'familyNameLang': 'ja'}, {'familyName': 'ジョウホウ', 'familyNameLang': 'ja-Kana'}, {'familyName': 'Joho', 'familyNameLang': 'en'}], 'contributorType': 'ContactPerson', 'nameIdentifiers': [{'nameIdentifier': 'xxxxxxx', 'nameIdentifierURI': 'https://orcid.org/', 'nameIdentifierScheme': 'ORCID'}, {'nameIdentifier': 'xxxxxxx', 'nameIdentifierURI': 'https://ci.nii.ac.jp/', 'nameIdentifierScheme': 'CiNii'}, {'nameIdentifier': 'xxxxxxx', 'nameIdentifierURI': 'https://kaken.nii.ac.jp/', 'nameIdentifierScheme': 'KAKEN2'}], 'contributorMails': [{'contributorMail': 'wekosoftware@nii.ac.jp'}], 'contributorNames': [{'lang': 'ja', 'contributorName': '情報, 太郎'}, {'lang': 'ja-Kana', 'contributorName': 'ジョウホ, タロウ'}, {'lang': 'en', 'contributorName': 'Joho, Taro'}]}], 'item_1617349808926': {'subitem_1523263171732': 'Version'}, 'item_1617351524846': {'subitem_1523260933860': 'Unknown'}, 'item_1617353299429': [{'subitem_1522306207484': 'isVersionOf', 'subitem_1522306287251': {'subitem_1522306382014': 'arXiv', 'subitem_1522306436033': 'xxxxx'}, 'subitem_1523320863692': [{'subitem_1523320867455': 'en', 'subitem_1523320909613': 'Related Title'}]}], 'item_1617605131499': [{'url': {'url': 'https://weko3.example.org/record/1/files/helloworld.pdf'}, 'date': [{'dateType': 'Available', 'dateValue': '2021-07-12'}], 'format': 'application/pdf', 'filename': 'helloworld.pdf', 'filesize': [{'value': '1 KB'}], 'mimetype': 'application/pdf', 'accessrole': 'open_access', 'version_id': 'c1502853-c2f9-455d-8bec-f6e630e54b21', 'displaytype': 'simple'}], 'item_1617610673286': [{'nameIdentifiers': [{'nameIdentifier': 'xxxxxx', 'nameIdentifierURI': 'https://orcid.org/', 'nameIdentifierScheme': 'ORCID'}], 'rightHolderNames': [{'rightHolderName': 'Right Holder Name', 'rightHolderLanguage': 'ja'}]}], 'item_1617620223087': [{'subitem_1565671149650': 'ja', 'subitem_1565671169640': 'Banner Headline', 'subitem_1565671178623': 'Subheading'}, {'subitem_1565671149650': 'en', 'subitem_1565671169640': 'Banner Headline', 'subitem_1565671178623': 'Subheding'}], 'item_1617944105607': [{'subitem_1551256015892': [{'subitem_1551256027296': 'xxxxxx', 'subitem_1551256029891': 'kakenhi'}], 'subitem_1551256037922': [{'subitem_1551256042287': 'Degree Grantor Name', 'subitem_1551256047619': 'en'}]}]}
 
-
+@pytest.mark.group3
 # def replace_license_free(record_metadata, is_change_label=True):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_replace_license_free -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_replace_license_free(app,records):
@@ -449,6 +459,7 @@ def test_replace_license_free(app,records):
     }}
     replace_license_free(data1)
 
+@pytest.mark.group4
 # def get_file_info_list(record):
 #     def get_file_size(p_file):
 #     def set_message_for_file(p_file):
@@ -466,7 +477,7 @@ def test_get_file_info_list(app,records):
 #def test_create_usage_report_for_user():
 #    assert False
 
-
+@pytest.mark.group4
 # def get_data_usage_application_data(record_metadata, data_result: dict):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_data_usage_application_data -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_data_usage_application_data(app, db, workflows, records, users, db_file_permission):
@@ -484,7 +495,7 @@ def test_get_data_usage_application_data(app, db, workflows, records, users, db_
     with app.test_request_context():
         assert create_usage_report_for_user(_onetime_download_extra_info)==None
 
-
+@pytest.mark.group4
 # def send_usage_report_mail_for_user(guest_mail: str, temp_url: str):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_send_usage_report_mail_for_user -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_send_usage_report_mail_for_user(app):
@@ -492,7 +503,7 @@ def test_send_usage_report_mail_for_user(app):
         res = send_usage_report_mail_for_user('guest@nii.co.jp', 'guest_url')
         assert res
 
-
+@pytest.mark.group4
 # def check_and_send_usage_report(extra_info, user_mail):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_check_and_send_usage_report -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_check_and_send_usage_report(app, db, users, db_file_permission):
@@ -543,6 +554,7 @@ def test_check_and_send_usage_report(app, db, users, db_file_permission):
                 with patch("weko_records_ui.utils.check_create_usage_report",return_value=None):
                     check_and_send_usage_report({"is_guest": False, "send_usage_report": True, "usage_application_activity_id": "A-20230101-00001"},users[7]['email'],data1, data2)
 
+@pytest.mark.group4
 # def generate_one_time_download_url(
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_generate_one_time_download_url -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_generate_one_time_download_url(app):
@@ -557,7 +569,7 @@ def test_generate_one_time_download_url(app):
         assert token[0] == record_id
         assert token[1] == guest_mail
 
-
+@pytest.mark.group5
 # def parse_one_time_download_token(token: str) -> Tuple[str, Tuple]:
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_parse_one_time_download_token -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_parse_one_time_download_token(app):
@@ -567,7 +579,7 @@ def test_parse_one_time_download_token(app):
         assert parse_one_time_download_token("test") != None
         assert parse_one_time_download_token(None) != None
 
-
+@pytest.mark.group5
 # def validate_onetime_download_token(
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_validate_onetime_download_token -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_validate_onetime_download_token(app,db_fileonetimedownload):
@@ -592,7 +604,7 @@ def test_validate_onetime_download_token(app,db_fileonetimedownload):
 
         assert validate_onetime_download_token(data1,file_name,record_id,user_email,date,token)== (False, 'Token is invalid.')
 
-
+@pytest.mark.group5
 # def is_private_index(record):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_is_private_index -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_is_private_index(app,records):
@@ -620,7 +632,7 @@ def test_is_private_index(app,records):
     with patch("weko_index_tree.api.Indexes.get_path_list", return_value=data1):
         assert is_private_index(record) == True
 
-
+@pytest.mark.group5
 # def validate_download_record(record: dict):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_validate_download_record -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_validate_download_record(app, records):
@@ -643,7 +655,7 @@ def test_validate_download_record(app, records):
         except:
             pass
 
-
+@pytest.mark.group5
 # def get_onetime_download(file_name: str, record_id: str,
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_onetime_download -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_onetime_download(app, db_fileonetimedownload):
@@ -654,6 +666,7 @@ def test_get_onetime_download(app, db_fileonetimedownload):
         with patch("weko_records_ui.models.FileOnetimeDownload.find", return_value=False):
             assert get_onetime_download('helloworld.pdf','1','wekosoftware@nii.ac.jp') == None
 
+@pytest.mark.group5
 # def def get_valid_onetime_download(file_name: str, record_id: str,user_mail: str) -> Optional[FileOnetimeDownload]:
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_valid_onetime_download -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_valid_onetime_download():
@@ -664,6 +677,7 @@ def test_get_valid_onetime_download():
     with patch("weko_records_ui.models.FileOnetimeDownload.find_downloadable_only",return_value=["a","b"]):
         assert "a" == get_valid_onetime_download(file_name= "str", record_id= "str",user_mail= "str")
 
+@pytest.mark.group5
 # def create_onetime_download_url(
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_create_onetime_download_url -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_create_onetime_download_url(app):
@@ -675,14 +689,14 @@ def test_create_onetime_download_url(app):
         with patch('weko_records_ui.utils.get_restricted_access', return_value=data1):
             assert create_onetime_download_url('ACT','helloworld.pdf','1','wekosoftware@nii.ac.jp') == False
 
-
+@pytest.mark.group6
 # def update_onetime_download(**kwargs) -> NoReturn:
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_update_onetime_download -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_update_onetime_download(app):
     with app.test_request_context():
         assert update_onetime_download(file_name="helloworld.pdf", user_mail="wekosoftware@nii.ac.jp", record_id="1", download_count=0)==None
 
-
+@pytest.mark.group6
 # def get_workflows():
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_workflows -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_workflows(app,users):
@@ -703,21 +717,22 @@ def test_get_workflows(app,users):
         with patch("weko_records_ui.utils.WorkFlow", return_value=data1):
             assert get_workflows() != []
 
-
+@pytest.mark.group6
 # def get_roles():
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_roles -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_roles(app,users):
     with patch("flask_login.utils._get_user", return_value=users[1]["obj"]):
-        assert get_roles()==[{'id': 'none_loggin', 'name': 'Guest'}, {'id': 1, 'name': 'System Administrator'}, {'id': 2, 'name': 'Repository Administrator'}, {'id': 3, 'name': 'Contributor'}, {'id': 4, 'name': 'Community Administrator'}, {'id': 5, 'name': 'General'}, {'id': 6, 'name': 'Original Role'}]
+        # assert get_roles()==[{'id': 'none_loggin', 'name': 'Guest'}, {'id': 1, 'name': 'System Administrator'}, {'id': 2, 'name': 'Repository Administrator'}, {'id': 3, 'name': 'Contributor'}, {'id': 4, 'name': 'Community Administrator'}, {'id': 5, 'name': 'General'}, {'id': 6, 'name': 'Original Role'}]
+        assert get_roles()==[{'id': 'none_loggin', 'name': 'Guest'}, {'id': 'System Administrator', 'name': 'System Administrator'}, {'id': 'Repository Administrator', 'name': 'Repository Administrator'}, {'id': 'Contributor', 'name': 'Contributor'}, {'id': 'Community Administrator', 'name': 'Community Administrator'}, {'id': 'General', 'name': 'General'}, {'id': 'Original Role', 'name': 'Original Role'}]
 
-
+@pytest.mark.group6
 # def get_terms():
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_terms -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_terms(app):
     with app.test_request_context():
         assert get_terms()== [{'id': 'term_free', 'name': 'Free Input'}]
 
-
+@pytest.mark.group6
 # def display_oaiset_path(record_metadata):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_display_oaiset_path -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_display_oaiset_path(app,records,itemtypes,oaischema,users):
@@ -733,7 +748,7 @@ def test_display_oaiset_path(app,records,itemtypes,oaischema,users):
         with patch("weko_index_tree.api.Indexes.get_path_name", return_value=[data1]):
             assert display_oaiset_path(record) == None
 
-
+@pytest.mark.group6
 # def get_google_scholar_meta(record):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_google_scholar_meta -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_google_scholar_meta(app,records,itemtypes,oaischema,oaiidentify):
@@ -745,7 +760,7 @@ def test_get_google_scholar_meta(app,records,itemtypes,oaischema,oaiidentify):
             record = results[0]["record"]
             assert get_google_scholar_meta(record)==[{'data': '『史料編纂掛備用写真画像図画類目録』画像の部：新旧架番号対照表', 'name': 'citation_title'}, {'data': '東京大学史料編纂所附属画像史料解析センター', 'name': 'citation_publisher'}, {'data': '2022-09-30', 'name': 'citation_publication_date'}, {'data': 'creator name', 'name': 'citation_author'}, {'data': 'https://repository.dl.itc.u-tokyo.ac.jp/record/2005680/files/comparison_table_of_preparation_image_catalog.xlsx',  'name': 'citation_pdf_url'}, {'data': '', 'name': 'citation_dissertation_institution'}, {'data': 'http://TEST_SERVER/records/1', 'name': 'citation_abstract_html_url'}]
 
-
+@pytest.mark.group6
 # def get_google_detaset_meta(record):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_google_detaset_meta -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_google_detaset_meta(app, records, itemtypes, oaischema, oaiidentify):
@@ -764,6 +779,7 @@ def test_get_google_detaset_meta(app, records, itemtypes, oaischema, oaiidentify
         with patch("lxml.etree", return_value=data1):
             assert get_google_detaset_meta(record) == None
 
+@pytest.mark.group7
 #def create_secret_url(record_id:str ,file_name:str ,user_mail:str ,restricted_fullname='',restricted_data_name='') -> dict:
 # def _generate_secret_download_url(file_name: str, record_id: str, id: str ,created :dt) -> str:
 # _create_secret_download_url(file_name: str, record_id: str, user_mail: str)
@@ -820,7 +836,7 @@ def test_create_secret_url(app,db,users,records):
         assert return_dict["restricted_download_link"] != ""
         assert return_dict["mail_recipient"] == user_mail
 
-
+@pytest.mark.group7
 # def parse_secret_download_token(token: str) -> Tuple[str, Tuple]:
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_parse_secret_download_token -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_parse_secret_download_token(app ,db):
@@ -841,6 +857,7 @@ def test_parse_secret_download_token(app ,db):
     assert error == 'Token is invalid.'
     assert res == ()
 
+@pytest.mark.group7
 # def validate_secret_download_token(
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_validate_secret_download_token -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_validate_secret_download_token(app):
@@ -895,6 +912,7 @@ def test_validate_secret_download_token(app):
         res = validate_secret_download_token(secret_download=secret_download2 , file_name= "eee.txt", record_id= '1', id= '5', date= '2023-03-08 00:52:19.624552', token= '6FA7D321A949550D')
         assert res == (False , _("Token is invalid."))
 
+@pytest.mark.group7
 # def get_secret_download(file_name: str, record_id: str,
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_secret_download -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_secret_download(app ,db ):
@@ -917,6 +935,7 @@ def test_get_secret_download(app ,db ):
                             , id= secret_download.id + 1
                             , created =secret_download.created)
 
+@pytest.mark.group7
 # def update_secret_download(**kwargs) -> Optional[List[FileSecretDownload]]:
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_get_data_usage_application_data -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_get_data_usage_application_data(app ,db):
@@ -937,7 +956,7 @@ def test_get_data_usage_application_data(app ,db):
         assert len(res) == 1
         assert res[0].download_count == 100
 
-
+@pytest.mark.group7
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_RoCrateConverter_convert -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_RoCrateConverter_convert(app, db):
     with open('tests/data/rocrate/rocrate_mapping.json', 'r') as f:
@@ -997,7 +1016,7 @@ def test_RoCrateConverter_convert(app, db):
     assert rocrate['@graph'][0]['prop10'] == ['value10_1_en', 'value10_2_1_en']
     assert rocrate['@graph'][5]['name'] == 'name'
 
-
+@pytest.mark.group7
 # def create_tsv(files, language='en'):
 # .tox/c1/bin/pytest --cov=weko_records_ui tests/test_utils.py::test_create_tsv -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-records-ui/.tox/c1/tmp
 def test_create_tsv(app, records):

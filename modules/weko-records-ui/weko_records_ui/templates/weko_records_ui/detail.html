@@ -1,108 +1,108 @@
 {# -*- coding: utf-8 -*-
-# This file is part of WEKO3.
-# Copyright (C) 2017 National Institute of Informatics.
-#
-# WEKO3 is free software; you can redistribute it and/or modify it
-# under the terms of the MIT License; see LICENSE file for more details.
-#}
-{% extends config.WEKO_SEARCH_UI_BASE_PAGE_TEMPLATE %}
+  # This file is part of WEKO3.
+  # Copyright (C) 2017 National Institute of Informatics.
+  #
+  # WEKO3 is free software; you can redistribute it and/or modify it
+  # under the terms of the MIT License; see LICENSE file for more details.
+  #}
+  {% extends config.WEKO_SEARCH_UI_BASE_PAGE_TEMPLATE %}
 
-{%- from "invenio_communities/macros.html" import community_header %}
+  {%- from "invenio_communities/macros.html" import community_header %}
 
-{%- block css %}
-  {{ super() }}
-  {{ webpack['records_ui_css_style.css']}}
-  {{ webpack['records_ui_bootstrap_popover_css.css']}}
-{%- endblock css %}
-
-{%- block javascript %}
-<!--   {% assets "weko_records_ui_dependencies_js" %}<script src="{{ ASSET_URL
-    }}"></script>{% endassets %} -->
-  {{ webpack['js-dependencies.js']}}
-  
-  {{ super() }}
-  <script src="{{ url_for('static', filename='js/weko_theme/inline.bundle.js') }}" defer></script>
-  <script src="{{ url_for('static', filename='js/weko_theme/polyfills.bundle.js') }}" defer></script>
-  <script src="{{ url_for('static', filename='js/weko_theme/main.bundle.js') }}" defer></script>
-  {{ webpack['theme-js-top-page.js']}}
-  {{ webpack['theme-search-detail.js']}}
-  {{ webpack['records_ui_js_dependecies.js']}}
-  {{ webpack['records_ui_js.js']}}
-  <script src="{{ url_for('static', filename='js/weko_records_ui/record_view_stats.js')}}"></script>
-  {{ webpack['records_ui_preview_carousel.js']}}
-  {%- set site_info = site_info|get_site_info %}
-  {%- set addthis_user_id = site_info.get("addthis_user_id",config.ADDTHIS_USER_ID) %}  
-  <!-- start demo block-->
-  <script type="text/javascript">
-    //see https://www.addthis.com/academy/the-addthis_config-variable/
-  var addthis_config = {
-    data_track_addressbar: false,
-    pubid: '{{ addthis_user_id }}',
-  };
-  </script>
-  <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js"></script>
-  <!-- end demo block -->
-  {{ webpack['theme-js-widget.js']}}
-  {{ webpack['records_ui_bootstrap_popover_js.js']}}
-{%- endblock javascript %}
-
-{%- block page_body_tabs %}
-  {% from "weko_theme/macros/tabs_selector.html" import tabs_selector with context %}
-  {{ tabs_selector('top',community_id) }}
-{%- endblock page_body_tabs%}
-
-{%- block page_header %}
-  {%- if not community_id %}
+  {%- block css %}
     {{ super() }}
-  {%- else%}
-  {%- endif%}
-{%- endblock page_header %}
+    {{ webpack['records_ui_css_style.css']}}
+    {{ webpack['records_ui_bootstrap_popover_css.css']}}
+  {%- endblock css %}
 
-{%- block page_footer %}
-  {%- if not community_id%}
-    {{ super() }}
-  {%- endif%}
-{%- endblock page_footer %}
+  {%- block javascript %}
+  {# <!--   {% assets "weko_records_ui_dependencies_js" %}<script src="{{ ASSET_URL
+      }}"></script>{% endassets %} --> #}
+    {{ webpack['js-dependencies.js']}}
 
-{% block page_body %}
-  {%-if not community_id %}
     {{ super() }}
-  {%- else%}
-    <div class="communities" >
-      <div id="community-id" name="community-id" hidden>{{ community_id }}</div>
-      {{ community_header(community, subtitle='') }}
-      <div id="page_body" class="grid-stack hidden" {%- if render_widgets %}style="display: None;"{%- endif %}>
-        <div id="main_contents">
-          {{ super() }}
+    <script src="{{ url_for('static', filename='js/weko_theme/inline.bundle.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/weko_theme/polyfills.bundle.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/weko_theme/main.bundle.js') }}" defer></script>
+    {{ webpack['theme-js-top-page.js']}}
+    {{ webpack['theme-search-detail.js']}}
+    {{ webpack['records_ui_js_dependecies.js']}}
+    {{ webpack['records_ui_js.js']}}
+    <script src="{{ url_for('static', filename='js/weko_records_ui/record_view_stats.js')}}"></script>
+    {{ webpack['records_ui_preview_carousel.js']}}
+    {%- set site_info = site_info|get_site_info %}
+    {%- set addthis_user_id = site_info.get("addthis_user_id",config.ADDTHIS_USER_ID) %}
+    <!-- start demo block-->
+    <script type="text/javascript">
+      //see https://www.addthis.com/academy/the-addthis_config-variable/
+    var addthis_config = {
+      data_track_addressbar: false,
+      pubid: '{{ addthis_user_id }}',
+    };
+    </script>
+    <script type="text/javascript" src="//s7.addthis.com/js/300/addthis_widget.js"></script>
+    <!-- end demo block -->
+    {{ webpack['theme-js-widget.js']}}
+    {{ webpack['records_ui_bootstrap_popover_js.js']}}
+  {%- endblock javascript %}
+
+  {%- block page_body_tabs %}
+    {% from "weko_theme/macros/tabs_selector.html" import tabs_selector with context %}
+    {{ tabs_selector('top',community_id) }}
+  {%- endblock page_body_tabs%}
+
+  {%- block page_header %}
+    {%- if not community_id %}
+      {{ super() }}
+    {%- else%}
+    {%- endif%}
+  {%- endblock page_header %}
+
+  {%- block page_footer %}
+    {%- if not community_id%}
+      {{ super() }}
+    {%- endif%}
+  {%- endblock page_footer %}
+
+  {% block page_body %}
+    {%-if not community_id %}
+      {{ super() }}
+    {%- else%}
+      <div class="communities" >
+        <div id="community-id" name="community-id" hidden>{{ community_id }}</div>
+        {{ community_header(community, subtitle='') }}
+        <div id="page_body" class="grid-stack hidden" {%- if render_widgets %}style="display: None;"{%- endif %}>
+          <div id="main_contents">
+            {{ super() }}
+          </div>
         </div>
+        {%- from "weko_theme/macros/footer-community.html" import community_footer_widget %}
+        {{ community_footer_widget(render_widgets, community, link=False, subtitle='') }}
       </div>
-      {%- from "weko_theme/macros/footer-community.html" import community_footer_widget %}
-      {{ community_footer_widget(render_widgets, community, link=False, subtitle='') }}
-    </div>
-    <div class="communities"></div>
-  {%- endif%}
-{% endblock page_body %}
+      <div class="communities"></div>
+    {%- endif%}
+  {% endblock page_body %}
 
-{%- block page_body_main %}
-  <div class="row row-4 no-print">
-    <div class="col-sm-12 col-md-12 col-lg-12">
-      {% include "weko_theme/body_search.html" %}
+  {%- block page_body_main %}
+    <div class="row row-4 no-print">
+      <div class="col-sm-12 col-md-12 col-lg-12">
+        {% include "weko_theme/body_search.html" %}
+      </div>
     </div>
-  </div>
-  <div class="row row-4" style="height:100%">
-    {% if (display_index_tree or (current_user.is_authenticated and config.WEKO_SHOW_INDEX_FOR_AUTHENTICATED_USER)) or display_facet_search %}
-    <div id="detail-index" class="col-sm-{{width}} col-md-{{width}} col-lg-{{width}} no-print" style="height:100%">
-      {% if display_index_tree or (current_user.is_authenticated and config.WEKO_SHOW_INDEX_FOR_AUTHENTICATED_USER) %}
-        {% include "weko_theme/body_index.html" %}
+    <div class="row row-4" style="height:100%">
+      {% if (display_index_tree or (current_user.is_authenticated and config.WEKO_SHOW_INDEX_FOR_AUTHENTICATED_USER)) or display_facet_search %}
+      <div id="detail-index" class="col-sm-{{width}} col-md-{{width}} col-lg-{{width}} no-print" style="height:100%">
+        {% if display_index_tree or (current_user.is_authenticated and config.WEKO_SHOW_INDEX_FOR_AUTHENTICATED_USER) %}
+          {% include "weko_theme/body_index.html" %}
+        {% endif %}
+        {% if display_facet_search %}
+          {% include "weko_search_ui/body_facet_search.html" %}
+        {% endif %}
+      </div>
       {% endif %}
-      {% if display_facet_search %}
-        {% include "weko_search_ui/body_facet_search.html" %}
-      {% endif %}
+      <div id="item-main" {% if (display_index_tree or (current_user.is_authenticated and config.WEKO_SHOW_INDEX_FOR_AUTHENTICATED_USER)) or display_facet_search %}
+      class="col-sm-{{12-width|int}} col-md-{{12-width|int}} col-lg-{{12-width|int}}"{% else %}class="col-sm-12 col-md-12 col-lg-12"{% endif %}>
+        {% include "weko_records_ui/body_contents.html" %}
+      </div>
     </div>
-    {% endif %}
-    <div id="item-main" {% if (display_index_tree or (current_user.is_authenticated and config.WEKO_SHOW_INDEX_FOR_AUTHENTICATED_USER)) or display_facet_search %}
-    class="col-sm-{{12-width|int}} col-md-{{12-width|int}} col-lg-{{12-width|int}}"{% else %}class="col-sm-12 col-md-12 col-lg-12"{% endif %}>
-      {% include "weko_records_ui/body_contents.html" %}
-    </div>
-  </div>
-{%- endblock page_body_main %}
+  {%- endblock page_body_main %}
