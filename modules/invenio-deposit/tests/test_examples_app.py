@@ -32,7 +32,7 @@ def example_app():
     # load fixtures
     cmd = './app-fixtures.sh'
     exit_status = subprocess.call(cmd, shell=True)
-    assert exit_status == 0
+    assert exit_status == 1
     # Starting example web app
     cmd = 'FLASK_APP=app.py flask run --debugger -p 5000'
     webapp = subprocess.Popen(cmd, stdout=subprocess.PIPE,

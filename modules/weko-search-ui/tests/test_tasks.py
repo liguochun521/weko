@@ -3,9 +3,8 @@ import os
 import json
 import pytest
 from flask import current_app, make_response, request
-from mock import patch, MagicMock, Mock
+from unittest.mock import patch,MagicMock
 from flask_login import current_user
-from mock import patch
 
 from weko_index_tree.api import Indexes
 from weko_search_ui.tasks import (
@@ -58,7 +57,7 @@ def test_remove_temp_dir_task(i18n_app, users, indices):
 
 # def delete_task_id_cache
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_tasks.py::test_delete_task_id_cache -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
-def test_delete_task_id_cache(app, users, redis_connect, mocker):
+def test_delete_task_id_cache(app, users, redis_connect):
     class MockAsyncResult:
         def __init__(self,task_id):
             self.task_id=task_id
@@ -68,23 +67,23 @@ def test_delete_task_id_cache(app, users, redis_connect, mocker):
                 return "REVOKED"
             else:
                 return "SUCCESS"
-    mocker.patch("weko_search_ui.tasks.AsyncResult",side_effect=MockAsyncResult)
-    cache_key = "test_task_id_cache"
+    with patch("weko_search_ui.tasks.AsyncResult",side_effect=MockAsyncResult):
+        cache_key = "test_task_id_cache"
 
-    # cache_data != task_id
-    redis_connect.put(cache_key, "success_task".encode("utf-8"))
-    delete_task_id_cache("revoked_task", cache_key)
-    assert redis_connect.redis.exists(cache_key) == True
+        # cache_data != task_id
+        redis_connect.put(cache_key, "success_task".encode("utf-8"))
+        delete_task_id_cache("revoked_task", cache_key)
+        assert redis_connect.redis.exists(cache_key) == True
 
-    # cache_data==task_id, state != REVOKED
-    delete_task_id_cache("success_task", cache_key)
-    assert redis_connect.redis.exists(cache_key) == True
+        # cache_data==task_id, state != REVOKED
+        delete_task_id_cache("success_task", cache_key)
+        assert redis_connect.redis.exists(cache_key) == True
 
-    # cache_data==task_id, state == REVOKED
-    redis_connect.redis.delete(cache_key)
-    redis_connect.put(cache_key, "revoked_task".encode("utf-8"))
-    delete_task_id_cache("revoked_task", cache_key)
-    assert redis_connect.redis.exists(cache_key) == False
+        # cache_data==task_id, state == REVOKED
+        redis_connect.redis.delete(cache_key)
+        redis_connect.put(cache_key, "revoked_task".encode("utf-8"))
+        delete_task_id_cache("revoked_task", cache_key)
+        assert redis_connect.redis.exists(cache_key) == False
 
 
 # def export_all_task(root_url, user_id, data):

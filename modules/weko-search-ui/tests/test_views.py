@@ -4,7 +4,7 @@ import json
 import pytest
 from flask import current_app, make_response, request, url_for
 from flask_login import current_user
-from mock import patch
+from unittest.mock import patch,MagicMock
 
 from weko_search_ui.views import (
     search,
