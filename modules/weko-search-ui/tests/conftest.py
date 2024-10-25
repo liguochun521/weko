@@ -276,12 +276,12 @@ def base_app(instance_path, search_class, request):
         INDEXER_FILE_DOC_TYPE="content",
         INDEXER_DEFAULT_INDEX="{}-weko-item-v1.0.0".format("test"),
         INDEX_IMG="indextree/36466818-image.jpg",
-        # SQLALCHEMY_DATABASE_URI=os.getenv('SQLALCHEMY_DATABASE_URI',
-        #                                   'postgresql+psycopg2://invenio:dbpass123@postgresql:5432/wekotest'),
+        SQLALCHEMY_DATABASE_URI=os.getenv('SQLALCHEMY_DATABASE_URI',
+                                          'postgresql+psycopg2://invenio:dbpass123@postgresql:5432/wekotest'),
         # SQLALCHEMY_DATABASE_URI=os.environ.get(
         #     "SQLALCHEMY_DATABASE_URI", "sqlite:///test.db"
         # ),
-        SQLALCHEMY_DATABASE_URI='postgresql+psycopg2://invenio:dbpass123@postgresql:5432/wekotest',
+        # SQLALCHEMY_DATABASE_URI='postgresql+psycopg2://invenio:dbpass123@postgresql:5432/wekotest',
         SEARCH_ELASTIC_HOSTS=os.environ.get("SEARCH_ELASTIC_HOSTS", "opensearch"),
         SEARCH_HOSTS=os.environ.get("SEARCH_HOST", "opensearch"),
         SQLALCHEMY_TRACK_MODIFICATIONS=True,
@@ -594,6 +594,8 @@ def base_app(instance_path, search_class, request):
         WEKO_BUCKET_QUOTA_SIZE=WEKO_BUCKET_QUOTA_SIZE,
         WEKO_MAX_FILE_SIZE=WEKO_MAX_FILE_SIZE,
         WEKO_SEARCH_TYPE_INDEX = "index",
+        WEKO_SEARCH_UI_BULK_EXPORT_TASKID_EXPIRED_TIME = 1,
+        WEKO_ITEMS_UI_INDEX_PATH_SPLIT = '///',
         WEKO_RECORDS_UI_EMAIL_ITEM_KEYS=[
                 'creatorMails', 'contributorMails', 'mails'],
         WEKO_SEARCH_UI_BULK_EXPORT_MSG = "MSG_EXPORT_ALL",
@@ -1679,21 +1681,38 @@ def file_instance_mock(db):
 
 
 @pytest.yield_fixture()
-def es(app):
+def es(base_app,app):
     """Provide elasticsearch access, create and clean indices.
 
     Don't create template so that the test or another fixture can modify the
     enabled events.
     """
-    current_search_client.indices.delete(index="*")
-    current_search_client.indices.delete_template("*")
-    list(current_search.create())
-    try:
-        yield current_search_client
-    finally:
-        current_search_client.indices.delete(index="*")
-        current_search_client.indices.delete_template("*")
+    # current_search_client.indices.delete(index="*")
+    # current_search_client.indices.delete_template("*")
+    # list(current_search.create())
+    # try:
+    #     yield current_search_client
+    # finally:
+    #     current_search_client.indices.delete(index="*")
+    #     current_search_client.indices.delete_template("*")
 
+    search_hosts = base_app.config["SEARCH_ELASTIC_HOSTS"]
+    search_client_config = base_app.config["SEARCH_CLIENT_CONFIG"]
+    search = OpenSearch(
+        hosts=[{'host': search_hosts, 'port': 9200}],
+        http_auth=search_client_config['http_auth'],
+        use_ssl=search_client_config['use_ssl'],
+        verify_certs=search_client_config['verify_certs'],
+    )
+
+    search.indices.delete(index='test-*')
+    search.indices.delete_template("*")
+    list(search.create())
+    try:
+        yield search
+    finally:
+        search.indices.delete(index="*")
+        search.indices.delete_template("*")
 
 def generate_events(
     app,
@@ -2228,18 +2247,36 @@ def item_render():
 
 
 @pytest.yield_fixture()
-def es(app):
+def es(base_app,app):
     """Elasticsearch fixture."""
-    try:
-        list(current_search.create())
-    # except RequestError:
-    except:
-        list(current_search.delete(ignore=[404]))
-        list(current_search.create(ignore=[400]))
-    current_search_client.indices.refresh()
-    yield current_search_client
-    list(current_search.delete(ignore=[404]))
+    # try:
+    #     list(current_search.create())
+    # # except RequestError:
+    # except:
+    #     list(current_search.delete(ignore=[404]))
+    #     list(current_search.create(ignore=[400]))
+    # current_search_client.indices.refresh()
+    # yield current_search_client
+    # list(current_search.delete(ignore=[404]))
 
+    search_hosts = base_app.config["SEARCH_ELASTIC_HOSTS"]
+    search_client_config = base_app.config["SEARCH_CLIENT_CONFIG"]
+    search = OpenSearch(
+        hosts=[{'host': search_hosts, 'port': 9200}],
+        http_auth=search_client_config['http_auth'],
+        use_ssl=search_client_config['use_ssl'],
+        verify_certs=search_client_config['verify_certs'],
+    )
+
+    try:
+       list(search.create())
+    except:
+        pass
+        # list(search.delete(ignore=[404]))
+        # list(search.create(ignore=[400]))
+    # search.indices.refresh()
+    yield search
+    # list(search.delete(index='test-*'))
 
 @pytest.fixture()
 def deposit(app, es, users, location, db):
@@ -2307,7 +2344,7 @@ def db_index(client, users):
 
 
 @pytest.fixture()
-def es_records(app, db, db_index, location, db_itemtype, db_oaischema):
+def es_records(base_app, app, db, db_index, location, db_itemtype, db_oaischema):
     indexer = WekoIndexer()
     indexer.get_es_index()
     results = []
@@ -2527,7 +2564,16 @@ def es_records(app, db, db_index, location, db_itemtype, db_oaischema):
             )
 
     sleep(3)
-    es = OpenSearch("http://{}:9200".format(app.config["SEARCH_HOSTS"]))
+    # es = OpenSearch("http://{}:9200".format(app.config["SEARCH_HOSTS"]))
+
+    search_hosts = base_app.config["SEARCH_ELASTIC_HOSTS"]
+    search_client_config = base_app.config["SEARCH_CLIENT_CONFIG"]
+    es = OpenSearch(
+        hosts=[{'host': search_hosts, 'port': 9200}],
+        http_auth=search_client_config['http_auth'],
+        use_ssl=search_client_config['use_ssl'],
+        verify_certs=search_client_config['verify_certs'],
+    )
     # print(es.cat.indices())
     return {"indexer": indexer, "results": results}
 
@@ -2731,18 +2777,18 @@ def record_indexer_receiver(sender, json=None, record=None, index=None,
 
 
 
-@pytest.yield_fixture()
-def es(app):
+# @pytest.yield_fixture()
+# def es(app):
     """Elasticsearch fixture."""
-    try:
-        current_search_client.indices.delete(index="test-*")
-        list(current_search.create())
-    except RequestError:
-        list(current_search.delete(ignore=[404]))
-        list(current_search.create(ignore=[400]))
-    current_search_client.indices.refresh()
-    yield current_search_client
-    list(current_search.delete(ignore=[404]))
+    # try:
+    #     current_search_client.indices.delete(index="test-*")
+    #     list(current_search.create())
+    # except RequestError:
+    #     list(current_search.delete(ignore=[404]))
+    #     list(current_search.create(ignore=[400]))
+    # current_search_client.indices.refresh()
+    # yield current_search_client
+    # list(current_search.delete(ignore=[404]))
 
 
 @pytest.yield_fixture()

@@ -23,6 +23,7 @@ from weko_admin.config import WEKO_ADMIN_MANAGEMENT_OPTIONS
 from weko_deposit.api import WekoDeposit, WekoIndexer
 from weko_records.api import ItemsMetadata, WekoRecord
 
+from invenio_deposit.api import Deposit
 from weko_search_ui import WekoSearchUI
 from weko_search_ui.config import (
     ACCESS_RIGHT_TYPE_URI,
@@ -124,6 +125,7 @@ from weko_search_ui.utils import (
     result_download_ui,
     search_results_to_tsv,
     create_tsv_row,
+    combine_aggs,
 )
 from werkzeug.exceptions import NotFound
 
@@ -151,7 +153,7 @@ class MockRecordsSearch:
     def update_from_dict(self, query=None):
         return self.MockQuery()
 
-
+@pytest.mark.group1
 # class DefaultOrderedDict(OrderedDict):
 def test_DefaultOrderDict_deepcopy():
     import copy
@@ -181,6 +183,7 @@ class MockSearchPerm:
 
     def can(self):
         return True
+@pytest.mark.group1
 # def get_tree_items(index_tree_id): ERROR ~ AttributeError: '_AppCtxGlobals' object has no attribute 'identity'
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_get_tree_items -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_get_tree_items(i18n_app, indices, users):
@@ -209,7 +212,7 @@ def test_get_tree_items(i18n_app, indices, users):
         # with patch("weko_search_ui.query.item_path_search_factory", return_value="{'abc': 123}"):
         assert get_tree_items(33)
 
-
+@pytest.mark.group1
 # def delete_records(index_tree_id, ignore_items):
 def test_delete_records(i18n_app, db_activity):
     with open("tests/data/search_result_2.json", "r") as json_file:
@@ -234,7 +237,7 @@ def test_delete_records(i18n_app, db_activity):
                             assert delete_records(33, ignore_items=[])
                             assert delete_records(1, ignore_items=[])
 
-
+@pytest.mark.group1
 # def get_journal_info(index_id=0):
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_get_journal_info -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_get_journal_info(i18n_app, indices, client_request_args):
@@ -258,7 +261,7 @@ def test_get_journal_info(i18n_app, indices, client_request_args):
             assert get_journal_info(33)
             mock_abort.assert_called_with(500)
 
-
+@pytest.mark.group1
 # def get_feedback_mail_list(): *** not yet done
 def test_get_feedback_mail_list(i18n_app, db_records2, es):
     search_instance = '{"size": 1, "query": {"bool": {"filter": [{"bool": {"must": [{"match": {"publish_status": "0"}}, {"range": {"publish_date": {"lte": "now/d"}}}, {"terms": {"path": ["1031", "1029", "1025", "952", "953", "943", "940", "1017", "1015", "1011", "881", "893", "872", "869", "758", "753", "742", "530", "533", "502", "494", "710", "702", "691", "315", "351", "288", "281", "759", "754", "744", "531", "534", "503", "495", "711", "704", "692", "316", "352", "289", "282", "773", "771", "767", "538", "539", "519", "510", "756", "745", "733", "337", "377", "308", "299", "2063", "2061", "2057", "1984", "1985", "1975", "1972", "2049", "2047", "2043", "1913", "1925", "1904", "1901", "1790", "1785", "1774", "1562", "1565", "1534", "1526", "1742", "1734", "1723", "1347", "1383", "1320", "1313", "1791", "1786", "1776", "1563", "1566", "1535", "1527", "1743", "1736", "1724", "1348", "1384", "1321", "1314", "1805", "1803", "1799", "1570", "1571", "1551", "1542", "1788", "1777", "1765", "1369", "1409", "1340", "1331", "4127", "4125", "4121", "4048", "4049", "4039", "4036", "4113", "4111", "4107", "3977", "3989", "3968", "3965", "3854", "3849", "3838", "3626", "3629", "3598", "3590", "3806", "3798", "3787", "3411", "3447", "3384", "3377", "3855", "3850", "3840", "3627", "3630", "3599", "3591", "3807", "3800", "3788", "3412", "3448", "3385", "3378", "3869", "3867", "3863", "3634", "3635", "3615", "3606", "3852", "3841", "3829", "3433", "3473", "3404", "3395", "1631495207665", "1631495247023", "1631495289664", "1631495340640", "1631510190230", "1631510251689", "1631510324260", "1631510380602", "1631510415574", "1631511387362", "1631511432362", "1631511521954", "1631511525655", "1631511606115", "1631511735866", "1631511740808", "1631511841882", "1631511874428", "1631511843164", "1631511845163", "1631512253601", "1633380618401", "1638171727119", "1638171753803", "1634120530242", "1636010714174", "1636010749240", "1638512895916", "1638512971664"]}}, {"bool": {"must": [{"match": {"publish_status": "0"}}, {"match": {"relation_version_is_last": "true"}}]}}, {"bool": {"should": [{"nested": {"query": {"multi_match": {"query": "simple", "operator": "and", "fields": ["content.attachment.content"]}}, "path": "content"}}, {"query_string": {"query": "simple", "default_operator": "and", "fields": ["search_*", "search_*.ja"]}}]}}]}}], "must": [{"match_all": {}}]}}, "aggs": {"Data Language": {"filter": {"bool": {"must": [{"term": {"publish_status": "0"}}]}}, "aggs": {"Data Language": {"terms": {"field": "language", "size": 1000}}}}, "Access": {"filter": {"bool": {"must": [{"term": {"publish_status": "0"}}]}}, "aggs": {"Access": {"terms": {"field": "accessRights", "size": 1000}}}}, "Location": {"filter": {"bool": {"must": [{"term": {"publish_status": "0"}}]}}, "aggs": {"Location": {"terms": {"field": "geoLocation.geoLocationPlace", "size": 1000}}}}, "Temporal": {"filter": {"bool": {"must": [{"term": {"publish_status": "0"}}]}}, "aggs": {"Temporal": {"terms": {"field": "temporal", "size": 1000}}}}, "Topic": {"filter": {"bool": {"must": [{"term": {"publish_status": "0"}}]}}, "aggs": {"Topic": {"terms": {"field": "subject.value", "size": 1000}}}}, "Distributor": {"filter": {"bool": {"must": [{"term": {"contributor.@attributes.contributorType": "Distributor"}}, {"term": {"publish_status": "0"}}]}}, "aggs": {"Distributor": {"terms": {"field": "contributor.contributorName", "size": 1000}}}}, "Data Type": {"filter": {"bool": {"must": [{"term": {"description.descriptionType": "Other"}}, {"term": {"publish_status": "0"}}]}}, "aggs": {"Data Type": {"terms": {"field": "description.value", "size": 1000}}}}}, "sort": [{"_id": {"order": "desc", "unmapped_type": "long"}}], "_source": {"excludes": ["content"]}}'
@@ -276,13 +279,13 @@ def test_get_feedback_mail_list(i18n_app, db_records2, es):
     ):
         assert get_feedback_mail_list() == {}
 
-
+@pytest.mark.group1
 # def check_permission():
 def test_check_permission(i18n_app, users):
     with patch("flask_login.utils._get_user", return_value=users[3]["obj"]):
         assert check_permission()
 
-
+@pytest.mark.group1
 # def get_content_workflow(item):
 def test_get_content_workflow():
     item = MagicMock()
@@ -295,7 +298,7 @@ def test_get_content_workflow():
 
     assert get_content_workflow(item)
 
-
+@pytest.mark.group2
 # def set_nested_item(data_dict, map_list, val):
 def test_set_nested_item(i18n_app):
     data_dict = {"1": {"a": "aa"}}
@@ -312,31 +315,31 @@ def test_set_nested_item(i18n_app):
 
 #     assert convert_nested_item_to_list(data_dict, map_list)
 
-
+@pytest.mark.group2
 # def define_default_dict(): *** not yet done
 def test_define_default_dict(i18n_app):
     # Test 1
     assert not define_default_dict()
 
-
+@pytest.mark.group2
 # def defaultify(d: dict) -> dict: *** not yet done
 def test_defaultify():
     # Test 1
     assert not defaultify({})
 
-
+@pytest.mark.group2
 # def handle_generate_key_path(key) -> list:
 def test_handle_generate_key_path():
     assert handle_generate_key_path("key")
 
-
+@pytest.mark.group2
 # def parse_to_json_form(data: list, item_path_not_existed=[], include_empty=False):
 def test_parse_to_json_form(i18n_app, record_with_metadata):
     data = record_with_metadata[0].items()
 
     assert parse_to_json_form(data)
 
-
+@pytest.mark.group2
 # def check_import_items(file, is_change_identifier: bool, is_gakuninrdm=False,
 def test_check_import_items(i18n_app):
     current_path = os.path.dirname(os.path.abspath(__file__))
@@ -345,7 +348,7 @@ def test_check_import_items(i18n_app):
 
     assert check_import_items(file_path, True)
 
-
+@pytest.mark.group2
 # def unpackage_import_file(data_path: str, file_name: str, file_format: str, force_new=False):
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_unpackage_import_file -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_unpackage_import_file(app, db, mocker_itemtype):
@@ -398,7 +401,7 @@ def test_unpackage_import_file(app, db, mocker_itemtype):
                                 == result_force_new
                             )
 
-
+@pytest.mark.group3
 # def getEncode(filepath):
 def test_getEncode():
     csv_files = [
@@ -422,7 +425,7 @@ def test_getEncode():
         )
         assert getEncode(filepath) == f["enc"]
 
-
+@pytest.mark.group3
 # def read_stats_file(file_path: str, file_name: str, file_format: str) -> dict:
 def test_read_stats_file(i18n_app, db_itemtype, users):
     current_path = os.path.dirname(os.path.abspath(__file__))
@@ -448,7 +451,7 @@ def test_read_stats_file(i18n_app, db_itemtype, users):
             assert read_stats_file(file_path_csv, file_name_csv, "csv")
             assert read_stats_file(file_path_tsv_2, file_name_tsv_2, "tsv")
 
-
+@pytest.mark.group3
 # def handle_convert_validate_msg_to_jp(message: str):
 def test_handle_convert_validate_msg_to_jp(i18n_app):
     message = ["%r is too long", "%r is not one of %r", "%r is a required property"]
@@ -458,7 +461,7 @@ def test_handle_convert_validate_msg_to_jp(i18n_app):
 
     assert handle_convert_validate_msg_to_jp("msg")
 
-
+@pytest.mark.group3
 # def handle_validate_item_import(list_record, schema) -> list:
 def test_handle_validate_item_import(app, mocker_itemtype):
     filepath = os.path.join(
@@ -494,41 +497,41 @@ def test_handle_validate_item_import(app, mocker_itemtype):
                 == result
             )
 
-
+@pytest.mark.group3
 # def represents_int(s):
 def test_represents_int():
     assert represents_int("a") == False
     assert represents_int("30") == True
     assert represents_int("31.1") == False
 
-
+@pytest.mark.group3
 # def get_item_type(item_type_id=0) -> dict:
-def test_get_item_type(mocker_itemtype):
-    # = {
-    #     "schema": "test",
-    #     "is_lastest": "test",
-    #     "name": "test",
-    #     "item_type_id": "15",
-    # }
+def test_get_item_type(mocker_itemtype,users,db):
+    check_item_type = {
+        "schema": "test",
+        "is_lastest": "test",
+        "name": "test",
+        "item_type_id": "15",
+    }
 
-    # with patch("flask_login.utils._get_user", return_value=users[3]["obj"]):
-    # with patch("weko_records.api.ItemTypes.get_by_id", return_value=check_item_type):
-    filepath = os.path.join(
-        os.path.dirname(os.path.realpath(__file__)),
-        "item_type/15_get_item_type_result.json",
-    )
-    with open(filepath, encoding="utf-8") as f:
-        except_result = json.load(f)
-    result = get_item_type(15)
-    assert result["is_lastest"] == except_result["is_lastest"]
-    assert result["name"] == except_result["name"]
-    assert result["item_type_id"] == except_result["item_type_id"]
-    assert result["schema"] == except_result["schema"]
-    assert result == except_result
+    with patch("flask_login.utils._get_user", return_value=users[3]["obj"]):
+        with patch("weko_records.api.ItemTypes.get_by_id", return_value=check_item_type):
+            filepath = os.path.join(
+                os.path.dirname(os.path.realpath(__file__)),
+                "item_type/15_get_item_type_result.json",
+            )
+            with open(filepath, encoding="utf-8") as f:
+                except_result = json.load(f)
+            result = get_item_type(15)
+            assert result["is_lastest"] == except_result["is_lastest"]
+            assert result["name"] == except_result["name"]
+            assert result["item_type_id"] == except_result["item_type_id"]
+            assert result["schema"] == except_result["schema"]
+            assert result == except_result
 
-    assert get_item_type(0) == {}
+            assert get_item_type(0) == {}
 
-
+@pytest.mark.group3
 # def handle_check_exist_record(list_record) -> list:
 def test_handle_check_exist_record(app):
     case = unittest.TestCase()
@@ -625,12 +628,12 @@ def test_handle_check_exist_record(app):
         with force_locale("en"):
             case.assertCountEqual(handle_check_exist_record(list_record), result)
 
-
+@pytest.mark.group3
 # def make_file_by_line(lines):
 def test_make_file_by_line(i18n_app):
     assert make_file_by_line("lines")
 
-
+@pytest.mark.group3
 # def make_stats_file(raw_stats, list_name):
 def test_make_stats_file(i18n_app):
     raw_stats = [
@@ -643,16 +646,16 @@ def test_make_stats_file(i18n_app):
 
     assert make_stats_file(raw_stats, list_name)
 
-
+@pytest.mark.group4
 # def create_deposit(item_id):
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_create_deposit -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_create_deposit(i18n_app, location, indices):
     assert create_deposit(None)['recid']=='1'
     assert create_deposit(33)['recid']=='33'
 
-
+@pytest.mark.group4
 # def clean_thumbnail_file(deposit, root_path, thumbnail_path):
-def test_clean_thumbnail_file(i18n_app, deposit):
+def test_clean_thumbnail_file(i18n_app,deposit):
     deposit = deposit
     root_path = "/"
     thumbnail_path = "/"
@@ -660,7 +663,7 @@ def test_clean_thumbnail_file(i18n_app, deposit):
     # Doesn't return a value
     assert not clean_thumbnail_file(deposit, root_path, thumbnail_path)
 
-
+@pytest.mark.group4
 # def up_load_file(record, root_path, deposit, allow_upload_file_content, old_files):
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_up_load_file -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_up_load_file(i18n_app, deposit, db_activity):
@@ -675,7 +678,7 @@ def test_up_load_file(i18n_app, deposit, db_activity):
         record, root_path, deposit, allow_upload_file_content, old_files
     )
 
-
+@pytest.mark.group4
 # def get_file_name(file_path):
 def test_get_file_name(i18n_app):
     assert get_file_name("test/test/test")
@@ -701,17 +704,16 @@ def find_and_update_location_size():
                     Location.id == row[0]).one()
                 loc.size = row[1]
 """
+@pytest.mark.group4
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_register_item_metadata -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_register_item_metadata(i18n_app, es_item_file_pipeline, deposit, es_records):
     item = es_records["results"][0]["item"]
     root_path = os.path.dirname(os.path.abspath(__file__))
     owner = "1"
-    print(88888)
-    print(root_path)
     with patch("invenio_files_rest.utils.find_and_update_location_size"):
         assert register_item_metadata(item, root_path,owner, is_gakuninrdm=False)
 
-
+@pytest.mark.group4
 # def update_publish_status(item_id, status):
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_update_publish_status -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_update_publish_status(i18n_app, es_item_file_pipeline, es_records):
@@ -721,7 +723,7 @@ def test_update_publish_status(i18n_app, es_item_file_pipeline, es_records):
     # Doesn't return a value
     assert not update_publish_status(item_id, status)
 
-
+@pytest.mark.group4
 # def handle_workflow(item: dict):
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_handle_workflow -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_handle_workflow(i18n_app, es_item_file_pipeline, es_records, db):
@@ -742,21 +744,21 @@ def test_handle_workflow(i18n_app, es_item_file_pipeline, es_records, db):
         # Doesn't return any value
         assert not handle_workflow(item)
 
-
+@pytest.mark.group4
 # def create_work_flow(item_type_id):
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_update_publish_status -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_create_work_flow(i18n_app, db_itemtype, db_workflow):
     # Doesn't return any value
     assert not create_work_flow(db_itemtype["item_type"].id)
 
-
+@pytest.mark.group4
 # def create_flow_define():
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_update_publish_status -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_create_flow_define(i18n_app, db_workflow):
     # Doesn't return anything
     assert not create_flow_define()
 
-
+@pytest.mark.group5
 # def send_item_created_event_to_es(item, request_info): *** ERR
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_send_item_created_event_to_es -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_send_item_created_event_to_es(
@@ -774,7 +776,7 @@ def test_send_item_created_event_to_es(
 
     send_item_created_event_to_es(item, request_info)
 
-
+@pytest.mark.group5
 # def import_items_to_system(item: dict, request_info=None, is_gakuninrdm=False): ERROR = TypeError: handle_remove_es_metadata() missing 2 required positional arguments: 'bef_metadata' and 'bef_las...
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_import_items_to_system -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_import_items_to_system(i18n_app, es_item_file_pipeline, es_records):
@@ -805,7 +807,7 @@ def test_import_items_to_system(i18n_app, es_item_file_pipeline, es_records):
                         item["item"]
                     )  # Will result in error but will cover exception part
 
-
+@pytest.mark.group5
 # def handle_item_title(list_record):
 def test_handle_item_title(i18n_app, es_item_file_pipeline, es_records):
     list_record = [es_records["results"][0]["item"]]
@@ -813,7 +815,7 @@ def test_handle_item_title(i18n_app, es_item_file_pipeline, es_records):
     # Doesn't return any value
     assert not handle_item_title(list_record)
 
-
+@pytest.mark.group5
 # def handle_check_and_prepare_publish_status(list_record):
 def test_handle_check_and_prepare_publish_status(i18n_app):
     record = {"publish_status": False}
@@ -826,7 +828,7 @@ def test_handle_check_and_prepare_publish_status(i18n_app):
     # Doesn't return any value
     assert not handle_check_and_prepare_publish_status([record])
 
-
+@pytest.mark.group5
 # def handle_check_and_prepare_index_tree(list_record, all_index_permission, can_edit_indexes): *** not yet done
 def test_handle_check_and_prepare_index_tree(i18n_app, record_with_metadata, indices):
     list_record = [record_with_metadata[0]]
@@ -857,7 +859,7 @@ def test_handle_check_and_prepare_index_tree(i18n_app, record_with_metadata, ind
         list_record, all_index_permission, can_edit_indexes
     )
 
-
+@pytest.mark.group5
 # def handle_check_and_prepare_index_tree(list_record, all_index_permission, can_edit_indexes):
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_handle_check_and_prepare_index_tree2 -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_handle_check_and_prepare_index_tree2(i18n_app, record_with_metadata, indices2):
@@ -884,7 +886,7 @@ def test_handle_check_and_prepare_index_tree2(i18n_app, record_with_metadata, in
     )
     assert list_record[0]["metadata"]["path"] == [2]
 
-
+@pytest.mark.group5
 # def handle_check_and_prepare_feedback_mail(list_record):
 def test_handle_check_and_prepare_feedback_mail(i18n_app, record_with_metadata):
     list_record = [record_with_metadata[0]]
@@ -905,7 +907,7 @@ def test_handle_check_and_prepare_feedback_mail(i18n_app, record_with_metadata):
     # Doesn't return any value
     assert not handle_check_and_prepare_feedback_mail([record])
 
-
+@pytest.mark.group5
 # def handle_set_change_identifier_flag(list_record, is_change_identifier):
 def test_handle_set_change_identifier_flag(i18n_app, record_with_metadata):
     list_record = [record_with_metadata[0]]
@@ -914,19 +916,19 @@ def test_handle_set_change_identifier_flag(i18n_app, record_with_metadata):
     # Doesn't return any value
     assert not handle_set_change_identifier_flag(list_record, is_change_identifier)
 
-
+@pytest.mark.group5
 # def handle_check_cnri(list_record):
 def test_handle_check_cnri(i18n_app):
     item = MagicMock()
-    # item = {
-    #     "id": 1,
-    #     "cnri": None,
-    #     "is_change_identifier": True
-    # }
+    item = {
+        "id": 1,
+        "cnri": None,
+        "is_change_identifier": True
+    }
     # Doesn't return any value
     assert not handle_check_cnri([item])
 
-
+@pytest.mark.group5
 def test_handle_check_cnri_2(i18n_app):
     # item["cnri"] =
     # item["is_change_identifier"] = False
@@ -934,7 +936,7 @@ def test_handle_check_cnri_2(i18n_app):
     # Doesn't return any value
     assert not handle_check_cnri([item2])
 
-
+@pytest.mark.group5
 # def handle_check_doi_indexes(list_record):
 def test_handle_check_doi_indexes(i18n_app, es_item_file_pipeline, es_records):
     list_record = [es_records["results"][0]["item"]]
@@ -942,7 +944,7 @@ def test_handle_check_doi_indexes(i18n_app, es_item_file_pipeline, es_records):
     # Doesn't return any value
     assert not handle_check_doi_indexes(list_record)
 
-
+@pytest.mark.group5
 # def handle_check_doi_ra(list_record):
 def test_handle_check_doi_ra(i18n_app, es_item_file_pipeline, es_records):
     # list_record = [es_records['results'][0]['item']]
@@ -958,7 +960,7 @@ def test_handle_check_doi_ra(i18n_app, es_item_file_pipeline, es_records):
             # Doesn't return any value
             assert not handle_check_doi_ra([item])
 
-
+@pytest.mark.group6
 # def handle_check_doi(list_record):
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_handle_check_doi -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_handle_check_doi(app,identifier):
@@ -1037,7 +1039,7 @@ def test_handle_check_doi(app,identifier):
     assert item == test
 
 
-
+@pytest.mark.group6
 # def register_item_handle(item):
 def test_register_item_handle(i18n_app, es_item_file_pipeline, es_records):
     item = es_records["results"][0]["item"]
@@ -1057,7 +1059,7 @@ def test_register_item_handle(i18n_app, es_item_file_pipeline, es_records):
         # Doesn't return any value
         assert not register_item_handle(item)
 
-
+@pytest.mark.group6
 # def prepare_doi_setting():
 def test_prepare_doi_setting(i18n_app, communities2, db):
     from weko_admin.models import Identifier
@@ -1079,7 +1081,7 @@ def test_prepare_doi_setting(i18n_app, communities2, db):
 # def get_doi_prefix(doi_ra):
 WEKO_IMPORT_DOI_TYPE = ["JaLC", "Crossref", "DataCite", "NDL JaLC"]
 
-
+@pytest.mark.group6
 @pytest.mark.parametrize("doi_ra", WEKO_IMPORT_DOI_TYPE)
 def test_get_doi_prefix(i18n_app, communities2, doi_ra, db):
     from weko_admin.models import Identifier
@@ -1097,7 +1099,7 @@ def test_get_doi_prefix(i18n_app, communities2, doi_ra, db):
 
     assert get_doi_prefix(doi_ra)
 
-
+@pytest.mark.group6
 # def get_doi_link(doi_ra, data):
 def test_get_doi_link(i18n_app):
     doi_ra = ["JaLC", "Crossref", "DataCite", "NDL JaLC"]
@@ -1113,7 +1115,7 @@ def test_get_doi_link(i18n_app):
     assert get_doi_link(doi_ra[2], data)
     assert get_doi_link(doi_ra[3], data)
 
-
+@pytest.mark.group6
 # def prepare_doi_link(item_id):
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_prepare_doi_link -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_prepare_doi_link(i18n_app, communities2, db):
@@ -1149,7 +1151,7 @@ def test_prepare_doi_link(i18n_app, communities2, db):
     }
     assert result == test
 
-
+@pytest.mark.group6
 # def register_item_doi(item):
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_register_item_doi -vv -s -v --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_register_item_doi(i18n_app, db_activity, identifier):
@@ -1309,6 +1311,7 @@ def test_register_item_doi(i18n_app, db_activity, identifier):
             with patch("weko_search_ui.utils.saving_doi_pidstore") as mock_save:
                 register_item_doi(item)
 
+@pytest.mark.group6
 # def register_item_update_publish_status(item, status):
 def test_register_item_update_publish_status(
     i18n_app, es_item_file_pipeline, es_records
@@ -1321,7 +1324,7 @@ def test_register_item_update_publish_status(
         # Doesn't return any value
         assert not register_item_update_publish_status(item, status)
 
-
+@pytest.mark.group7
 # def handle_doi_required_check(record):
 def test_handle_doi_required_check(
     i18n_app,
@@ -1359,9 +1362,9 @@ def test_handle_doi_required_check(
     ):
         assert handle_doi_required_check(record2)
 
-
+@pytest.mark.group7
 # def handle_check_date(list_record):
-def test_handle_check_date(app, test_list_records, mocker_itemtype):
+def test_handle_check_date(app, test_list_records, mocker_itemtype,db):
     for t in test_list_records:
         input_data = t.get("input")
         output_data = t.get("output")
@@ -1371,7 +1374,7 @@ def test_handle_check_date(app, test_list_records, mocker_itemtype):
     # with patch("weko_search_ui.utils.validation_date_property", return_value=""):
     #     assert handle_check_date(test_list_records)
 
-
+@pytest.mark.group7
 # def handle_check_id(list_record):
 def test_handle_check_id(i18n_app, record_with_metadata):
     list_record = [record_with_metadata[1]]
@@ -1379,7 +1382,7 @@ def test_handle_check_id(i18n_app, record_with_metadata):
     # Doesn't return any value
     assert not handle_check_id(list_record)
 
-
+@pytest.mark.group7
 # def get_data_in_deep_dict(search_key, _dict={}):
 def test_get_data_in_deep_dict(i18n_app):
     search_key = "test"
@@ -1396,7 +1399,7 @@ def test_get_data_in_deep_dict(i18n_app):
         _dict["test"] = [{"a": 1}, 2]
         assert get_data_in_deep_dict("tests", _dict)
 
-
+@pytest.mark.group7
 # def validation_file_open_date(record):
 def test_validation_file_open_date(app, test_records):
     for t in test_records:
@@ -1407,7 +1410,7 @@ def test_validation_file_open_date(app, test_records):
         with app.app_context():
             assert validation_file_open_date(ret) == result
 
-
+@pytest.mark.group7
 # def validation_date_property(date_str):
 def test_validation_date_property():
     # with pytest.raises(Exception):
@@ -1421,7 +1424,7 @@ def test_validation_date_property():
     assert validation_date_property("2022-12-0110") == False
     assert validation_date_property("hogehoge") == False
 
-
+@pytest.mark.group7
 # def get_list_key_of_iso_date(schemaform):
 def test_get_list_key_of_iso_date():
     form = os.path.join(
@@ -1437,17 +1440,17 @@ def test_get_list_key_of_iso_date():
         df = json.load(f)
     assert get_list_key_of_iso_date(df) == result
 
-
+@pytest.mark.group7
 # def get_current_language():
 def test_get_current_language(i18n_app):
     assert get_current_language()
 
-
+@pytest.mark.group7
 # def get_change_identifier_mode_content():
 def test_get_change_identifier_mode_content(i18n_app):
     assert get_change_identifier_mode_content()
 
-
+@pytest.mark.group7
 # def get_root_item_option(item_id, item, sub_form={"title_i18n": {}}):
 def test_get_root_item_option(i18n_app):
     item_id = 1
@@ -1462,7 +1465,7 @@ def test_get_root_item_option(i18n_app):
 
     assert get_root_item_option(item_id, item)
 
-
+@pytest.mark.group7
 # def get_sub_item_option(key, schemaform):
 def test_get_sub_item_option(i18n_app):
     key = "key"
@@ -1485,7 +1488,7 @@ def test_get_sub_item_option(i18n_app):
     with patch("weko_search_ui.utils.get_sub_item_option", return_value=True):
         assert get_sub_item_option(key, schemaform2)
 
-
+@pytest.mark.group7
 # def check_sub_item_is_system(key, schemaform):
 def test_check_sub_item_is_system(i18n_app):
     key = "key"
@@ -1508,7 +1511,7 @@ def test_check_sub_item_is_system(i18n_app):
     with patch("weko_search_ui.utils.check_sub_item_is_system", return_value=True):
         assert check_sub_item_is_system(key, schemaform2)
 
-
+@pytest.mark.group7
 # def get_lifetime():
 def test_get_lifetime(i18n_app, db_register2):
     assert get_lifetime()
@@ -1517,7 +1520,7 @@ def test_get_lifetime(i18n_app, db_register2):
     with patch("weko_admin.models.SessionLifetime.get_validtime", return_value=""):
         assert not get_lifetime()
 
-
+@pytest.mark.group7
 # def get_system_data_uri(key_type, key):
 def test_get_system_data_uri():
     data = [
@@ -1532,7 +1535,7 @@ def test_get_system_data_uri():
                 url = val.get(key)
                 assert get_system_data_uri(key_type, key) == url
 
-
+@pytest.mark.group7
 # def handle_fill_system_item(list_record):
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_handle_fill_system_item -vv -s -v --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 
@@ -1735,7 +1738,12 @@ def test_handle_fill_system_item(app, test_list_records,identifier):
                     assert len(items) == len(items_result)
                     assert items == items_result
 
-
+@pytest.mark.group8
+# @pytest.mark.group82
+# @pytest.mark.group83
+# @pytest.mark.group84
+# @pytest.mark.group85
+# @pytest.mark.group86
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_handle_fill_system_item3 -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 # doi2, doi_ra2 は自動補完が原則
 @pytest.mark.parametrize(
@@ -1959,6 +1967,7 @@ def test_handle_fill_system_item(app, test_list_records,identifier):
         (None,{"cnri":"test_cnri","doi": "xyz.jalc/abc","doi_ra":"JaLC","doi2": None,"doi_ra2":None},{"cnri":"test_cnri","doi": "xyz.jalc/abc","doi_ra":"JaLC","doi2": "xyz.jalc/abc","doi_ra2":"JaLC"},[],[],True,True),
         (None,{"cnri":"test_cnri","doi": "","doi_ra":"","doi2": None,"doi_ra2":None},{"cnri":"test_cnri","doi": "","doi_ra":"","doi2": None,"doi_ra2":None},[],[],True,True),
     ])
+
 def test_handle_fill_system_item3(app,doi_records,item_id,before_doi,after_doi,warnings,errors,is_change_identifier,is_register_cnri):
     app.config.update(
         WEKO_HANDLE_ALLOW_REGISTER_CRNI=is_register_cnri
@@ -1989,7 +1998,7 @@ def test_handle_fill_system_item3(app,doi_records,item_id,before_doi,after_doi,w
             "edit_mode": "Keep",
             "file_path": [""],
             "item_type_name": "デフォルトアイテムタイプ（フル）",
-            "item_type_id": 1,
+            "item_type_id": 10,
             "$schema": "https://localhost:8443/items/jsonschema/1",
         }
 
@@ -2042,7 +2051,7 @@ def test_handle_fill_system_item3(app,doi_records,item_id,before_doi,after_doi,w
             "edit_mode": "Keep",
             "file_path": [""],
             "item_type_name": "デフォルトアイテムタイプ（フル）",
-            "item_type_id": 1,
+            "item_type_id": 10,
             "$schema": "https://localhost:8443/items/jsonschema/1",
             "identifier_key": "item_1617186819068",
             "errors": errors,
@@ -2082,17 +2091,17 @@ def test_handle_fill_system_item3(app,doi_records,item_id,before_doi,after_doi,w
         handle_fill_system_item(before_list)
         assert after_list == before_list
 
-
+@pytest.mark.group9
 # def get_thumbnail_key(item_type_id=0):
 def test_get_thumbnail_key(i18n_app, db_itemtype, db_workflow):
     assert get_thumbnail_key(item_type_id=10)
 
-
+@pytest.mark.group9
 # def handle_check_thumbnail_file_type(thumbnail_paths):
 def test_handle_check_thumbnail_file_type(i18n_app):
     assert handle_check_thumbnail_file_type(["/"])
 
-
+@pytest.mark.group9
 # def handle_check_metadata_not_existed(str_keys, item_type_id=0): *** not yet done
 def test_handle_check_metadata_not_existed(i18n_app, db_itemtype):
     # Test 1
@@ -2100,7 +2109,7 @@ def test_handle_check_metadata_not_existed(i18n_app, db_itemtype):
         ".metadata", db_itemtype["item_type"].id
     )
 
-
+@pytest.mark.group9
 # def handle_get_all_sub_id_and_name(items, root_id=None, root_name=None, form=[]):
 @pytest.mark.parametrize(
     "items,root_id,root_name,form,ids,names",
@@ -2290,6 +2299,7 @@ def test_handle_check_metadata_not_existed(i18n_app, db_itemtype):
         ),
     ],
 )
+@pytest.mark.group9
 def test_handle_get_all_sub_id_and_name(
     app, items, root_id, root_name, form, ids, names
 ):
@@ -2298,12 +2308,12 @@ def test_handle_get_all_sub_id_and_name(
             items, root_id, root_name, form
         )
 
-
+@pytest.mark.group9
 # def handle_get_all_id_in_item_type(item_type_id):
 def test_handle_get_all_id_in_item_type(i18n_app, db_itemtype):
     assert handle_get_all_id_in_item_type(db_itemtype["item_type"].id)
 
-
+@pytest.mark.group10
 # def handle_check_consistence_with_mapping(mapping_ids, keys): *** not yet done
 def test_handle_check_consistence_with_mapping(i18n_app):
     mapping_ids = ["abc"]
@@ -2312,7 +2322,7 @@ def test_handle_check_consistence_with_mapping(i18n_app):
     # Test 1
     assert not handle_check_consistence_with_mapping(mapping_ids, keys)
 
-
+@pytest.mark.group10
 # def handle_check_duplication_item_id(ids: list): *** not yet done
 def test_handle_check_duplication_item_id(i18n_app):
     ids = [[1, 2, 3, 4], 2, 3, 4]
@@ -2320,7 +2330,7 @@ def test_handle_check_duplication_item_id(i18n_app):
     # Test 1
     assert not handle_check_duplication_item_id(ids)
 
-
+@pytest.mark.group10
 # def export_all(root_url, user_id, data): *** not yet done
 def test_export_all(db_activity, i18n_app, users, item_type, db_records2):
     root_url = "/"
@@ -2329,11 +2339,11 @@ def test_export_all(db_activity, i18n_app, users, item_type, db_records2):
     data2 = {"item_type_id": "-1", "item_id_range": "1-9"}
     data3 = {"item_type_id": -1, "item_id_range": "1"}
 
-    assert not export_all(root_url, user_id, data)
-    assert not export_all(root_url, user_id, data2)
-    assert not export_all(root_url, user_id, data3)
+    assert not export_all(root_url, user_id, data, timezone="UTC")
+    assert not export_all(root_url, user_id, data2, timezone="UTC")
+    assert not export_all(root_url, user_id, data3, timezone="UTC")
 
-
+@pytest.mark.group10
 # def delete_exported(uri, cache_key):
 def test_delete_exported(i18n_app, file_instance_mock):
     file_path = os.path.join(
@@ -2347,7 +2357,7 @@ def test_delete_exported(i18n_app, file_instance_mock):
         # Doesn't return any value
         assert not delete_exported(file_path, "key")
 
-
+@pytest.mark.group10
 # def cancel_export_all():
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_cancel_export_all -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_cancel_export_all(i18n_app, users, redis_connect):
@@ -2381,7 +2391,7 @@ def test_cancel_export_all(i18n_app, users, redis_connect):
             result = cancel_export_all()
             assert result == False
 
-
+@pytest.mark.group10
 # def get_export_status():
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_get_export_status -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_get_export_status(i18n_app, users, redis_connect):
@@ -2435,7 +2445,7 @@ def test_get_export_status(i18n_app, users, redis_connect):
                 result=get_export_status()
                 assert result == (False, "test_uri", "test_msg", "test_run_msg", "")
 
-
+@pytest.mark.group10
 # def handle_check_item_is_locked(item):
 def test_handle_check_item_is_locked(i18n_app, db_activity):
     # Doesn't return any value
@@ -2447,7 +2457,7 @@ def test_handle_check_item_is_locked(i18n_app, db_activity):
         else:
             pass
 
-
+@pytest.mark.group10
 # def handle_remove_es_metadata(item, bef_metadata, bef_last_ver_metadata):
 def test_handle_remove_es_metadata(i18n_app, es_item_file_pipeline, es_records):
     item = es_records["results"][0]["item"]
@@ -2472,7 +2482,7 @@ def test_handle_remove_es_metadata(i18n_app, es_item_file_pipeline, es_records):
     item["status"] = "upgrade"
     assert not handle_remove_es_metadata(item, bef_metadata, bef_last_ver_metadata)
 
-
+@pytest.mark.group10
 # def check_index_access_permissions(func):
 @check_index_access_permissions
 def test_check_index_access_permissions(i18n_app, client_request_args, users):
@@ -2481,7 +2491,7 @@ def test_check_index_access_permissions(i18n_app, client_request_args, users):
         # Test is successful if there are no errors
         assert True
 
-
+@pytest.mark.group10
 # def handle_check_file_metadata(list_record, data_path):
 def test_handle_check_file_metadata(i18n_app, record_with_metadata):
     list_record = [record_with_metadata[0]]
@@ -2492,7 +2502,7 @@ def test_handle_check_file_metadata(i18n_app, record_with_metadata):
 
     # with patch("weko_search_ui.utils.handle_check_file_content", return_value=):
 
-
+@pytest.mark.group10
 # def handle_check_file_path(paths, data_path, is_new=False, is_thumbnail=False, is_single_thumbnail=False):
 def test_handle_check_file_path(i18n_app):
     paths = ["/test"]
@@ -2500,7 +2510,7 @@ def test_handle_check_file_path(i18n_app):
 
     assert handle_check_file_path(paths, data_path)
 
-
+@pytest.mark.group10
 # def handle_check_file_content(record, data_path):
 def test_handle_check_file_content(i18n_app, record_with_metadata):
     list_record = record_with_metadata[0]
@@ -2508,7 +2518,7 @@ def test_handle_check_file_content(i18n_app, record_with_metadata):
 
     assert handle_check_file_content(list_record, data_path)
 
-
+@pytest.mark.group10
 # def handle_check_thumbnail(record, data_path):
 def test_handle_check_thumbnail(i18n_app, record_with_metadata):
     record = record_with_metadata[0]
@@ -2522,7 +2532,7 @@ def test_handle_check_thumbnail(i18n_app, record_with_metadata):
     ):
         assert handle_check_thumbnail(record, data_path)
 
-
+@pytest.mark.group10
 # def get_key_by_property(record, item_map, item_property):
 def test_get_key_by_property(i18n_app):
     record = "record"
@@ -2532,7 +2542,7 @@ def test_get_key_by_property(i18n_app):
     assert get_key_by_property(record, item_map, item_property)
     assert not get_key_by_property("", {}, "")
 
-
+@pytest.mark.group10
 # def get_data_by_property(item_metadata, item_map, mapping_key):
 def test_get_data_by_property(i18n_app):
     item_metadata = {}
@@ -2547,7 +2557,7 @@ def test_get_data_by_property(i18n_app):
     ):
         assert get_data_by_property(item_metadata, item_map, mapping_key)
 
-
+@pytest.mark.group11
 # def get_filenames_from_metadata(metadata):
 def test_get_filenames_from_metadata(i18n_app, record_with_metadata):
     metadata = record_with_metadata[0]["metadata"]
@@ -2562,7 +2572,7 @@ def test_get_filenames_from_metadata(i18n_app, record_with_metadata):
     metadata["_id"] = [{"test": "test"}]
     assert not get_filenames_from_metadata(metadata)
 
-
+@pytest.mark.group11
 # def handle_check_filename_consistence(file_paths, meta_filenames):
 def test_handle_check_filename_consistence(i18n_app):
     file_paths = ["abc/abc", "abc/abc"]
@@ -2584,6 +2594,7 @@ def test_handle_check_filename_consistence(i18n_app):
         ),
     ]
 )
+@pytest.mark.group11
 def test_function_issue34520(app, doi_records, item_id, before_doi, after_doi, warnings, errors, is_change_identifier):
     before = {
             "metadata": {
@@ -2611,7 +2622,7 @@ def test_function_issue34520(app, doi_records, item_id, before_doi, after_doi, w
             "edit_mode": "Keep",
             "file_path": [""],
             "item_type_name": "デフォルトアイテムタイプ（フル）",
-            "item_type_id": 1,
+            "item_type_id": 10,
             "$schema": "https://localhost/items/jsonschema/1",
         }
 
@@ -2661,7 +2672,7 @@ def test_function_issue34520(app, doi_records, item_id, before_doi, after_doi, w
             "edit_mode": "Keep",
             "file_path": [""],
             "item_type_name": "デフォルトアイテムタイプ（フル）",
-            "item_type_id": 1,
+            "item_type_id": 10,
             "$schema": "https://localhost/items/jsonschema/1",
             "identifier_key": "item_1617186819068",
             "errors": errors,
@@ -2698,6 +2709,7 @@ def test_function_issue34520(app, doi_records, item_id, before_doi, after_doi, w
         handle_fill_system_item(before_list)
         assert after_list == before_list
 
+@pytest.mark.group11
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_function_issue34535 -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search_ui/.tox/c1/tmp
 def test_function_issue34535(db,db_index,db_itemtype,location,db_oaischema):
     with patch("weko_search_ui.utils.find_and_update_location_size"):
@@ -2737,6 +2749,7 @@ def test_function_issue34535(db,db_index,db_itemtype,location,db_oaischema):
         record = WekoDeposit.get_record(recid.object_uuid)
         assert record == {'_oai': {'id': 'oai:weko3.example.org:00000004', 'sets': ['1']}, 'path': ['1'], 'owner': '1', 'recid': '4', 'title': ['test item in br'], 'pubdate': {'attribute_name': 'PubDate', 'attribute_value': '2022-11-21'}, '_buckets': {'deposit': '0796e490-6dcf-4e7d-b241-d7201c3de83a'}, '_deposit': {'id': '4', 'pid': {'type': 'depid', 'value': '4', 'revision_id': 0}, 'owner': '1', 'owners': [1], 'status': 'draft', 'created_by': 1}, 'item_title': 'test item in br', 'author_link': [], 'item_type_id': '1', 'publish_date': '2022-11-21', 'publish_status': '0', 'weko_shared_id': -1, 'item_1617186331708': {'attribute_name': 'Title', 'attribute_value_mlt': [{'subitem_1551255647225': 'test item in br', 'subitem_1551255648112': 'ja'}]}, 'item_1617186626617': {'attribute_name': 'Description', 'attribute_value_mlt': [{'subitem_description': 'this is line1.\nthis is line2.', 'subitem_description_language': 'en', 'subitem_description_type': 'Abstract'}]}, 'item_1617258105262': {'attribute_name': 'Resource Type', 'attribute_value_mlt': [{'resourcetype': 'conference paper', 'resourceuri': 'http://purl.org/coar/resource_type/c_5794'}]}, 'relation_version_is_last': True, 'control_number': '4'}
 
+@pytest.mark.group11
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_function_issue34958 -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_function_issue34958(app, make_itemtype):
     with app.test_request_context(headers=[('Accept-Language', 'en')]):
@@ -2760,6 +2773,7 @@ def test_function_issue34958(app, make_itemtype):
 
         assert result == test
 
+@pytest.mark.group11
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_function_issue34520 -v -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 @pytest.mark.parametrize(
     "item_id, before_doi,after_doi,warnings,errors,is_change_identifier",
@@ -2783,6 +2797,8 @@ def test_function_issue34958(app, make_itemtype):
         )
     ]
 )
+
+@pytest.mark.group11
 def test_handle_fill_system_item_issue34520(app, doi_records, item_id, before_doi, after_doi, warnings, errors, is_change_identifier):
     before = {
             "metadata": {
@@ -2810,7 +2826,7 @@ def test_handle_fill_system_item_issue34520(app, doi_records, item_id, before_do
             "edit_mode": "Keep",
             "file_path": [""],
             "item_type_name": "デフォルトアイテムタイプ（フル）",
-            "item_type_id": 1,
+            "item_type_id": 10,
             "$schema": "https://localhost/items/jsonschema/1",
         }
 
@@ -2860,7 +2876,7 @@ def test_handle_fill_system_item_issue34520(app, doi_records, item_id, before_do
             "edit_mode": "Keep",
             "file_path": [""],
             "item_type_name": "デフォルトアイテムタイプ（フル）",
-            "item_type_id": 1,
+            "item_type_id": 10,
             "$schema": "https://localhost/items/jsonschema/1",
             "identifier_key": "item_1617186819068",
             "errors": errors,
@@ -2896,7 +2912,7 @@ def test_handle_fill_system_item_issue34520(app, doi_records, item_id, before_do
         handle_fill_system_item(before_list)
         assert after_list == before_list
 
-
+@pytest.mark.group11
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_handle_check_exist_record_issue35315 -v -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 @pytest.mark.parametrize(
     "id, uri, warnings, errors,status",
@@ -2969,7 +2985,7 @@ def test_handle_check_exist_record_issue35315(app, doi_records, id, uri, warning
         result = handle_check_exist_record(before_list)
         assert after_list == result
 
-
+@pytest.mark.group12
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_conbine_aggs -v -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_conbine_aggs():
     some_path = {"took": "215","time_out": False,"_shards": {"total": "1","successful": "1","skipped": "0","failed": "0"},"hits": {"total": "0","max_score": None,"hits": []},"aggregations": {"path_0": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []},"path_1": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": [{"key": "1234567891011","doc_count": "1","date_range": {"doc_count": "1","available": {"buckets": [{"key": "*-2023-07-25","to": "1690243200000.0","to_as_string": "2023-07-25","doc_count": "1"},{"key": "2023-07-25-*","from": "1690243200000.0","from_as_string": "2023-07-25","doc_count": "0"}]}},"Data Type": {"doc_count": "0","Data Type": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"Distributor": {"doc_count": "0","Distributor": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"Data Language": {"doc_count": "1","Data Language": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"Temporal": {"doc_count": "1","Temporal": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"Access": {"doc_count": "1","Access": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"no_available": {"doc_count": "0"},"Topic": {"doc_count": "1","Topic": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"Location": {"doc_count": "1","Location": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}}}]},"path_2": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": [{"key": "1234567891012","doc_count": "2","date_range": {"doc_count": "2","available": {"buckets": [{"key": "*-2023-07-25","to": "1690243200000.0","to_as_string": "2023-07-25","doc_count": "2"},{"key": "2023-07-25-*","from": "1690243200000.0","from_as_string": "2023-07-25","doc_count": "0"}]}},"Data Type": {"doc_count": "0","Data Type": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"Distributor": {"doc_count": "0","Distributor": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"Data Language": {"doc_count": "1","Data Language": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"Temporal": {"doc_count": "1","Temporal": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"Access": {"doc_count": "1","Access": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"no_available": {"doc_count": "0"},"Topic": {"doc_count": "1","Topic": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"Location": {"doc_count": "1","Location": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}}},{"key": "1234567891013","doc_count": "3","date_range": {"doc_count": "1","available": {"buckets": [{"key": "*-2023-07-25","to": "1690243200000.0","to_as_string": "2023-07-25","doc_count": "3"},{"key": "2023-07-25-*","from": "1690243200000.0","from_as_string": "2023-07-25","doc_count": "0"}]}},"Data Type": {"doc_count": "0","Data Type": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"Distributor": {"doc_count": "0","Distributor": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"Data Language": {"doc_count": "1","Data Language": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"Temporal": {"doc_count": "1","Temporal": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"Access": {"doc_count": "1","Access": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"no_available": {"doc_count": "0"},"Topic": {"doc_count": "1","Topic": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}},"Location": {"doc_count": "1","Location": {"doc_count_error_upper_bound": "0","sum_order_doc_count": "0","buckets": []}}}]}}}
@@ -2991,7 +3007,7 @@ def test_conbine_aggs():
     result = combine_aggs(other_agg)
     assert test == result
 
-
+@pytest.mark.group12
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_result_download_ui -v -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_result_download_ui(app):
     valid_json = [{
@@ -3016,7 +3032,7 @@ def test_result_download_ui(app):
             with pytest.raises(NotFound):
                 res = result_download_ui(None, valid_json)
 
-
+@pytest.mark.group12
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_search_results_to_tsv -v -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_search_results_to_tsv(app):
     valid_json = [
@@ -3057,7 +3073,7 @@ def test_search_results_to_tsv(app):
             except:
                 assert False
 
-
+@pytest.mark.group12
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_create_tsv_row -v -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_create_tsv_row(app):
     field_rocrate_dict = {'Title': 'title', 'Field': 'genre'}
