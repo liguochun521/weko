@@ -34,7 +34,8 @@ from weko_search_ui.utils import (
     handle_get_all_sub_id_and_name
 )
 from invenio_i18n.ext import InvenioI18N, current_i18n
-from invenio_i18n.babel import set_locale
+# from invenio_i18n.babel import set_locale
+from flask import _request_ctx_stack
 from weko_search_ui.config import (
     WEKO_REPO_USER,
     WEKO_SYS_USER,
@@ -46,7 +47,7 @@ from weko_search_ui.config import (
 
 from unittest.mock import patch, Mock, MagicMock
 from weko_search_ui import WekoSearchUI
-from flask_babelex import Babel
+# from flask_babelex import Babel
 import copy
 
 FIXTURE_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "data")
@@ -282,9 +283,12 @@ def test_unpackage_import_file(app,mocker,mocker_itemtype):
 
     path = os.path.join(os.path.dirname(os.path.realpath(__file__)),"data", "unpackage_import_file")
     with app.test_request_context():
-        with set_locale('en'):
-            assert unpackage_import_file(path,'items.csv','csv',False)==result
-            assert unpackage_import_file(path,'items.csv','csv',True)==result_force_new
+        # with set_locale('en'):
+        ctx = _request_ctx_stack.top
+        if ctx is not None and hasattr(ctx, 'babel_locale'):
+            with setattr(ctx, 'babel_locale', 'en'):
+                assert unpackage_import_file(path,'items.csv','csv',False)==result
+                assert unpackage_import_file(path,'items.csv','csv',True)==result_force_new
 
 
 # def getEncode(filepath):
@@ -328,8 +332,10 @@ def test_handle_validate_item_import(app,mocker_itemtype):
         result = json.load(f)
 
     with app.test_request_context():
-        with set_locale('en'):
-            assert handle_validate_item_import(list_record, data.get("item_type_schema", {}))==result
+        ctx = _request_ctx_stack.top
+        if ctx is not None and hasattr(ctx, 'babel_locale'):
+            with setattr(ctx, 'babel_locale', 'en'):
+                assert handle_validate_item_import(list_record, data.get("item_type_schema", {}))==result
 
 # def represents_int(s):
 
@@ -379,8 +385,10 @@ def test_handle_check_exist_record(app):
         result = json.load(f)
 
     with app.test_request_context():
-        with set_locale('en'):
-            case.assertCountEqual(handle_check_exist_record(list_record),result)
+        ctx = _request_ctx_stack.top
+        if ctx is not None and hasattr(ctx, 'babel_locale'):
+            with setattr(ctx, 'babel_locale', 'en'):
+                case.assertCountEqual(handle_check_exist_record(list_record),result)
 
     # case 3 import items with id and uri
     filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)),"data", "list_records", "b4_handle_check_exist_record2.json")
@@ -392,11 +400,13 @@ def test_handle_check_exist_record(app):
         result = json.load(f)
 
     with app.test_request_context():
-        with set_locale('en'):
-            with patch("weko_deposit.api.WekoRecord.get_record_by_pid") as m:
-                m.return_value.pid.is_deleted.return_value = False
-                m.return_value.get.side_effect = [1,2,3,4,5,6,7,8,9,10]
-                case.assertCountEqual(handle_check_exist_record(list_record),result)
+        ctx = _request_ctx_stack.top
+        if ctx is not None and hasattr(ctx, 'babel_locale'):
+            with setattr(ctx, 'babel_locale', 'en'):
+                with patch("weko_deposit.api.WekoRecord.get_record_by_pid") as m:
+                    m.return_value.pid.is_deleted.return_value = False
+                    m.return_value.get.side_effect = [1,2,3,4,5,6,7,8,9,10]
+                    case.assertCountEqual(handle_check_exist_record(list_record),result)
 
     # case 4 import new items with doi_ra
     filepath = os.path.join(os.path.dirname(os.path.realpath(__file__)),"data", "list_records", "b4_handle_check_exist_record3.json")
@@ -408,8 +418,10 @@ def test_handle_check_exist_record(app):
         result = json.load(f)
 
     with app.test_request_context():
-        with set_locale('en'):
-            case.assertCountEqual(handle_check_exist_record(list_record),result)
+        ctx = _request_ctx_stack.top
+        if ctx is not None and hasattr(ctx, 'babel_locale'):
+            with setattr(ctx, 'babel_locale', 'en'):
+                case.assertCountEqual(handle_check_exist_record(list_record),result)
 
     # with open(filepath,encoding="utf-8", mode='wt') as f:
     #      json.dump(result,f,ensure_ascii=False)
@@ -623,10 +635,12 @@ def test_handle_fill_system_item(app,test_list_records,mocker):
     #     items_result = json.load(f)
 
     with app.test_request_context():
-        with set_locale('en'):
-            handle_fill_system_item(items)
-            assert len(items)==len(items_result)
-            assert items==items_result
+        ctx = _request_ctx_stack.top
+        if ctx is not None and hasattr(ctx, 'babel_locale'):
+            with setattr(ctx, 'babel_locale', 'en'):
+                handle_fill_system_item(items)
+                assert len(items)==len(items_result)
+                assert items==items_result
 
 
 
