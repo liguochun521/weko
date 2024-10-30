@@ -114,8 +114,6 @@ class TestItemManagementBulkSearch:
                 # user = users[0]['obj']
                 # login_user_via_session(client=client, email=users[0]["email"])
                 res = client.get(url)
-                # print(9999)
-                # print(res.data)
                 assert res.status == '200 OK'
 
 #     def is_visible(): ~ GOOD

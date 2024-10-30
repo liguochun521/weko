@@ -1739,11 +1739,6 @@ def test_handle_fill_system_item(app, test_list_records,identifier):
                     assert items == items_result
 
 @pytest.mark.group8
-# @pytest.mark.group82
-# @pytest.mark.group83
-# @pytest.mark.group84
-# @pytest.mark.group85
-# @pytest.mark.group86
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_utils.py::test_handle_fill_system_item3 -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 # doi2, doi_ra2 は自動補完が原則
 @pytest.mark.parametrize(
