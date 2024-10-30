@@ -507,29 +507,20 @@ def test_represents_int():
 @pytest.mark.group3
 # def get_item_type(item_type_id=0) -> dict:
 def test_get_item_type(mocker_itemtype,users,db):
-    check_item_type = {
-        "schema": "test",
-        "is_lastest": "test",
-        "name": "test",
-        "item_type_id": "15",
-    }
+    filepath = os.path.join(
+        os.path.dirname(os.path.realpath(__file__)),
+        "item_type/15_get_item_type_result.json",
+    )
+    with open(filepath, encoding="utf-8") as f:
+        except_result = json.load(f)
+    result = get_item_type(15)
+    assert result["is_lastest"] == except_result["is_lastest"]
+    assert result["name"] == except_result["name"]
+    assert result["item_type_id"] == except_result["item_type_id"]
+    assert result["schema"] == except_result["schema"]
+    assert result == except_result
 
-    with patch("flask_login.utils._get_user", return_value=users[3]["obj"]):
-        with patch("weko_records.api.ItemTypes.get_by_id", return_value=check_item_type):
-            filepath = os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "item_type/15_get_item_type_result.json",
-            )
-            with open(filepath, encoding="utf-8") as f:
-                except_result = json.load(f)
-            result = get_item_type(15)
-            assert result["is_lastest"] == except_result["is_lastest"]
-            assert result["name"] == except_result["name"]
-            assert result["item_type_id"] == except_result["item_type_id"]
-            assert result["schema"] == except_result["schema"]
-            assert result == except_result
-
-            assert get_item_type(0) == {}
+    assert get_item_type(0) == {}
 
 @pytest.mark.group3
 # def handle_check_exist_record(list_record) -> list:
@@ -711,7 +702,7 @@ def test_register_item_metadata(i18n_app, es_item_file_pipeline, deposit, es_rec
     root_path = os.path.dirname(os.path.abspath(__file__))
     owner = "1"
     with patch("invenio_files_rest.utils.find_and_update_location_size"):
-        assert register_item_metadata(item, root_path,owner, is_gakuninrdm=False)
+        assert register_item_metadata(item, root_path, owner, is_gakuninrdm=False)
 
 @pytest.mark.group4
 # def update_publish_status(item_id, status):

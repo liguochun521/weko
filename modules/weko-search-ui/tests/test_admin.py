@@ -107,12 +107,8 @@ class TestItemManagementBulkSearch:
             res = client.get(url)
             assert res.status == '302 FOUND'
 
-        # with patch("weko_search_ui.views.db.session.remove"):
-        # user = users[0]['obj']
         with patch("flask_login.utils._get_user", return_value=user):
             with patch("flask.templating._render", return_value=""):
-                # user = users[0]['obj']
-                # login_user_via_session(client=client, email=users[0]["email"])
                 res = client.get(url)
                 assert res.status == '200 OK'
 
@@ -138,8 +134,10 @@ class TestItemImportView:
 
         with patch("flask_login.utils._get_user", return_value=user):
             with patch("flask.templating._render", return_value=""):
-                res = client.get(url)
-                assert res.status == '200 OK'
+                with patch("flask.templating.DispatchingJinjaLoader._get_source_fast", return_value=""):
+                    with patch("jinja2.loaders.BaseLoader.load", return_value=""):
+                        res = client.get(url)
+                        assert res.status == '200 OK'
 
 # def check(self) -> jsonify: ~ UnboundLocalError: local variable 'task' referenced before assignment request.form needed
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_admin.py::test_ItemImportView_check -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
@@ -188,23 +186,8 @@ def test_ItemImportView_check(i18n_app, app,users, client,client_request_args):
             task = MagicMock()
             task.task_id = 1
             with patch("weko_search_ui.tasks.check_import_items_task.apply_async",return_Value=task):
-                # from flask_wtf.csrf import CSRFProtect
-                # app.config['SECRET_KEY'] = 'your_secret_key'
-                # csrf = CSRFProtect(app)
-                import secrets
-                # # i18n_app.config['WEKO_SEARCH_TYPE_INDEX'] = 'index'
-                currect_token = secrets.token_hex()
-                # # with i18n_app.test_client() as client:
-                # with patch("weko_admin.api.validate_csrf_header",return_Value=currect_token):
-                headers = [
-                    ("X-CSRFToken",currect_token)
-                ]
-                with app.test_request_context(headers=headers):
-                    with patch('flask_wtf.csrf.validate_csrf') as mock_validate_csrf:
-                        mock_validate_csrf.return_value = None
-                        # from flask_wtf.csrf import CSRFError
-                        # with pytest.raises(CSRFError):
-                        assert test.check()
+                with patch("weko_admin.api.validate_csrf"):
+                    assert test.check()
 
 #     def get_check_status(self) -> jsonify: ~ GOOD
 def test_ItemImportView_get_check_status(i18n_app, users,app, client_request_args, db_records2):
