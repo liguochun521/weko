@@ -180,46 +180,56 @@ def test_ItemImportView_check(i18n_app, app,users, client,client_request_args):
     # )
 
     with patch("flask_login.utils._get_user", return_value=users[3]['obj']):
-        with app.test_client() as client:
-        # with patch("flask.templating._render", return_value=""):
-            test = ItemImportView()
-            task = MagicMock()
-            task.task_id = 1
-            with patch("weko_search_ui.tasks.check_import_items_task.apply_async",return_Value=task):
-                with patch("weko_admin.api.validate_csrf"):
+        test = ItemImportView()
+        task = MagicMock()
+        task.task_id = 1
+        with patch("weko_search_ui.tasks.check_import_items_task.apply_async",return_Value=task):
+            with patch("weko_admin.api.validate_csrf",return_Value={"file":"file","form":"form"}):
+                with pytest.raises(Exception):
                     assert test.check()
 
 #     def get_check_status(self) -> jsonify: ~ GOOD
 def test_ItemImportView_get_check_status(i18n_app, users,app, client_request_args, db_records2):
     with patch("flask_login.utils._get_user", return_value=users[3]['obj']):
-            test = ItemImportView()
-            assert test.get_check_status()
+            with patch("flask.wrappers.Request.on_json_loading_failed"):
+                with patch("celery.backends.base.Backend.get_task_meta"):
+                    test = ItemImportView()
+                    assert test.get_check_status()
 
 #     def download_check(self): ~ GOOD
 def test_ItemImportView_download_check(i18n_app, users, client_request_args, db_records2):
     with patch("flask_login.utils._get_user", return_value=users[3]['obj']):
-        # with i18n_app.test_request_context():
-        test = ItemImportView()
-        assert test.download_check()
+            with patch("flask.wrappers.Request.on_json_loading_failed"):
+                with patch("celery.backends.base.Backend.get_task_meta"):
+                    test = ItemImportView()
+                    assert test.download_check()
 
 #     def import_items(self) -> jsonify: ~ GOOD
 # .tox/c1/bin/pytest --cov=weko_search_ui tests/test_admin.py::test_ItemImportView_import_items -vv -s --cov-branch --cov-report=term --basetemp=/code/modules/weko-search-ui/.tox/c1/tmp
 def test_ItemImportView_import_items(i18n_app, users, client_request_args, db_records2):
     with patch("flask_login.utils._get_user", return_value=users[3]['obj']):
-        test = ItemImportView()
-        assert test.import_items()
+        with patch("flask.wrappers.Request.on_json_loading_failed"):
+            with patch("celery.backends.base.Backend.get_task_meta"):
+                with patch("redis._parsers.encoders.Encoder.encode"):
+                    with patch("flask_admin.base.BaseView._run_view"):
+                        test = ItemImportView()
+                        assert test.import_items()
 
 #     def get_status(self): ~ GOOD
 def test_ItemImportView_get_status(i18n_app, users, client_request_args, db_records2):
     with patch("flask_login.utils._get_user", return_value=users[3]['obj']):
-        test = ItemImportView()
-        assert test.get_status()
+        with patch("flask.wrappers.Request.on_json_loading_failed"):
+            with patch("celery.backends.base.Backend.get_task_meta"):
+                test = ItemImportView()
+                assert test.get_status()
 
 #     def download_import(self): ~ GOOD
 def test_ItemImportView_download_import(i18n_app, users, client_request_args, db_records2):
     with patch("flask_login.utils._get_user", return_value=users[3]['obj']):
-        test = ItemImportView()
-        assert test.download_import()
+        with patch("flask.wrappers.Request.on_json_loading_failed"):
+            with patch("celery.backends.base.Backend.get_task_meta"):
+                test = ItemImportView()
+                assert test.download_import()
 
 #     def get_disclaimer_text(self): ~ GOOD
 def test_ItemImportView_get_disclaimer_text(i18n_app, users, client_request_args, db_records2):

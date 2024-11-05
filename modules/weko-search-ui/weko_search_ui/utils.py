@@ -1324,7 +1324,13 @@ def register_item_metadata(item, root_path, owner, is_gakuninrdm=False):
     # check location file
     find_and_update_location_size()
     if not is_cleaned:
+        print(7777777777)
+        print(new_data)
         for idx, file_info in enumerate(new_data.get(file_key, [])):
+            print(88888)
+            print(file_info)
+            print(9999)
+            print(file_key)
             if file_info.get('filename') in file_size_dict \
                     and not file_info.get('filesize'):
                 new_data[file_key][idx]['filesize'] = file_size_dict.get(file_info.get('filename'))
@@ -1538,6 +1544,7 @@ def import_items_to_system(item: dict, request_info=None, is_gakuninrdm=False):
                     pid_type="recid", pid_value=item["id"]
                 ).first()
                 item["pid"] = pid
+                print(99999)
                 bef_metadata = WekoIndexer().get_metadata_by_item_id(pid.object_uuid)
                 parent_pid = PIDNodeVersioning(pid=pid).parents.one_or_none()
                 bef_last_ver_metadata = WekoIndexer().get_metadata_by_item_id(
