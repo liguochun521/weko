@@ -132,40 +132,17 @@
             </div>
         </li>
 
-
-
         <!-- アイテム出力ボタン -->
         <li role="presentation" style="float: right; margin-right: 20px;">
             <button id="export_button" class="btn btn-primary">アイテム出力</button>
         </li>
         
-        <!-- デフォルト設定ドロップダウン -->
-        <li class="dropdown" style="float: right; margin-right: 20px;">
-            <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)" aria-expanded="false">
-            デフォルト設定 <strong class="caret"></strong>
-            </a>
-            <ul class="dropdown-menu">
-            {%- for filter in filters %}
-                {%- if filter == "workflow" %}
-                <li>
-                    <a href="javascript:void(0)" class="filter_option" id="workflow" data-name="workflow">リソースタイプ</a>
-                </li>
-                {%- elif filter == "user" %}
-                <li>
-                    <a href="javascript:void(0)" class="filter_option" id="user" data-name="user">査読</a>
-                </li>
-                {%- elif filter == "item" %}
-                <li>
-                    <a href="javascript:void(0)" class="filter_option" id="item" data-name="item">資金別情報</a>
-                </li>
-                {%- elif filter == "status" %}
-                <li>
-                    <a href="javascript:void(0)" class="filter_option" id="status" data-name="status">本文ファイル</a>
-                </li>
-                {%- endif %}
-            {%- endfor %}
-            </ul>
+        <!-- # TODO デフォルト設定 guan.shuang 20241211 start-->
+        <li class="" style="float: right; margin-right: 20px;">
+          <a href="{{url_for('weko_workflow.workspaceDefaultConditionsSetting')}}">デフォルト設定 </a>
         </li>
+        <!-- # TODO デフォルト設定 guan.shuang 20241211 end-->
+
       </ul>
       {%- if send_mail -%}
         <button class="btn btn-default style-button pull-right" id="btn_send_mail">
@@ -207,32 +184,39 @@
       {%- endif%}
     
     </div>
+
+    <!-- # TODO 並べ替え　guan.shuang 20241211 start-->
     <div class="form-inline flow-root">
-      <!-- <button type="submit" id="filter_form_submit" class="btn btn-primary">{{_('Apply')}}</button> -->
-      {%- if current_user.is_authenticated and current_user.roles and delete_activity_log_enable == True and tab=="all"%}
-        {% set flag_1=True %}
-        {%- for role in current_user.roles %}
-           {%- if role in activitylog_roles and flag_1 == True %}
-              <button type="submit" id="filter_form_download" class="btn btn-primary">{{_('Download')}}</button>                           
-              <button type="submit" id="filter_form_clear" class="btn btn-danger">{{_('Clear')}} </button>
-              <form method="GET" name="activitylog_file_form" id="activitylog_file_form" action={{url_for('weko_workflow.download_activitylog')}}>
-              </form>
-              {% set flag_1= False %}
-           {%- endif %}
-        {%- endfor %}
-      {%- endif %}
       <div class="pull-right">
+
         <div class="form-group">
-          <label for="page_count">{{_('Display Number')}}</label>
+          {{_('Display order')}}:
+          <select class="form-control" id="sort_item">
+            <option value="1">出版年月</option>
+            <option value="2">アクセス数</option>
+            <option value="3">ダウンロード数</option>
+            <option value="4">未定</option>
+            <option value="5">未定</option>
+          </select>
+          <select class="form-control" id="sort_ascdesc">
+            <option value="1">asc</option>
+            <option value="2">desc</option>
+          </select>
+        </div>
+    
+        <div class="form-group">
+          {{_('Display number')}}:
           <select class="form-control" id="page_count">
-            <option value="20" {% if size=='20' %} selected="selected" {% endif %}>20</option>
-            <option value="50" {% if size=='50' %} selected="selected" {% endif %}>50</option>
-            <!-- <option value="75" {% if size=='75' %} selected="selected" {% endif %}>75</option> -->
-            <option value="100" {% if size=='100' %} selected="selected" {% endif %}>100</option>
+            <option value="20">20</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
           </select>
         </div>
       </div>
     </div>
+    <!-- # TODO 並べ替え　guan.shuang 20241211 end-->
+
+
     <!-- # TODO -->
     <div class="row">
       <div class="col-sm-12">
@@ -278,23 +262,68 @@
                   {%- endif %}
                 {%- endfor %} -->
                 <th>{{ _('No.') }}</th>
-                <th>☆</th>
+                <th>お気に入り</th>
                 <th>DOI</th>
                 <th>タイトル</th>
                 <th>雑誌名</th>
                 <th>会議名</th>
                 <th>リソースタイプ</th>
-                <th>査読</th>
+                <th>査読有無</th>
+                <th>エンバーゴ有無</th>
                 <th>根拠データ</th>
                 <th>本文ファイル</th>
                 <th>出版年月</th>
-                <th>アクセス数</th>
-                <th>ダウンロード数</th>
+                <!-- <th>アクセス数</th>
+                <th>ダウンロード数</th> -->
                 <th>フィードバックメール</th>
                 <th>制限公開</th>
                 <th>作成日</th>
                 <th>更新日</th>
               </tr>
+
+              <!-- # TODO アイテム情報イメージ　guan.shuang 20241211 start-->
+              <tr>
+                <th>001</th>
+                <th>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star" viewBox="0 0 16 16">
+                    <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.56.56 0 0 0-.163-.505L1.71 6.745l4.052-.576a.53.53 0 0 0 .393-.288L8 2.223l1.847 3.658a.53.53 0 0 0 .393.288l4.052.575-2.906 2.77a.56.56 0 0 0-.163.506l.694 3.957-3.686-1.894a.5.5 0 0 0-.461 0z"/>
+                  </svg>
+                  // 
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
+                    <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                  </svg>
+                </th>
+                <th>doi12312312313</th>
+                <th><a>タイトルリンク01(誘導)</a></th>
+                <th>雑誌名01</th>
+                <th>会議名01</th>
+                <th>リソースタイプ01</th>
+                <th>
+                  未読
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-book" viewBox="0 0 16 16">
+                    <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/>
+                  </svg>
+                  /既読
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-book-fill" viewBox="0 0 16 16">
+                    <path d="M8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/>
+                  </svg>
+                </th>
+                <th>エンバーゴ有無
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-range" viewBox="0 0 16 16">
+                    <path d="M9 7a1 1 0 0 1 1-1h5v2h-5a1 1 0 0 1-1-1M1 9h4a1 1 0 0 1 0 2H1z"/>
+                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
+                  </svg>
+                </th>
+                <th>根拠データ01</th>
+                <th>本文ファイル01</th>
+                <th>出版年月01</th>
+                <th>フィードバックメール01</th>
+                <th>制限公開01</th>
+                <th>作成日01</th>
+                <th>更新日01</th>
+              </tr>
+               <!-- # TODO アイテム情報イメージ　guan.shuang 20241211 end-->
+
             </thead>
             <tbody>
             {%- for activity in activities %}
@@ -341,6 +370,25 @@
             </tbody>
           </table>
         </div>
+
+        <!-- # TODO ページング表示.shuang 20241211 start-->
+        <div class="row">
+          <div class="text-center">
+            <ul class="pagination">
+              <li>
+                <a href="javascript:void(0)" class="get-pages" data-pages="">&lt;</a>
+              </li>
+              <li>
+                <a href="javascript:void(0)" class="get-pages" data-pages="">1</a>
+              </li>
+              <li>
+                <a href="javascript:void(0)" class="get-pages" data-pages="">&gt;</a>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {#
         {% if maxpage|int >= 1 %}
         <div class="row">
           <div class="text-center">
@@ -382,6 +430,9 @@
           </div>
         </div>
         {%- endif%}
+        #}
+        <!-- # TODO ページング表示.shuang 20241211 end-->
+
         <!-- <div>
           {%-if community%}
             <button class="btn btn-success pull-right" onClick="window.location.href='{{url_for('weko_workflow.new_activity', community=community.id)}}'; $(this).prop('disabled', true)">

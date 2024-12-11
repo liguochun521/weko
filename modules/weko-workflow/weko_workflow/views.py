@@ -3510,3 +3510,15 @@ def workspace():
         activitylog_roles=current_app.config.get("WEKO_WORKFLOW_ACTIVITYLOG_ROLE_ENABLE"),
         **ctx
     )
+
+# デフォルト条件設定　guan.shuang 20241211 start
+@workflow_blueprint.route('/workspaceDefaultCon')
+@login_required
+def workspaceDefaultConditionsSetting():
+        
+        print("==========guan.shuang workspace workspaceIDefaultCon =========")
+        
+        return render_template(
+        'weko_workflow/workspaceIDefaultCon.html'
+    )
+# デフォルト条件設定　guan.shuang 20241211 end

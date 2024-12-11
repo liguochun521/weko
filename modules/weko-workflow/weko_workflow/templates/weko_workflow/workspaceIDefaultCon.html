@@ -1,0 +1,260 @@
+{#
+# This file is part of WEKO3.
+# Copyright (C) 2017 National Institute of Informatics.
+#
+# WEKO3 is free software; you can redistribute it
+# and/or modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of the
+# License, or (at your option) any later version.
+#
+# WEKO3 is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with WEKO3; if not, write to the
+# Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+# MA 02111-1307, USA.
+#}
+
+{%- extends config.WEKO_WORKFLOW_BASE_TEMPLATE %}
+{%- from "invenio_communities/macros.html" import community_header %}
+
+{%- block css %}
+{{ super() }}
+{% assets "workflow_datepicker_css" %}
+<link href="{{ ASSET_URL }}" rel="stylesheet">{% endassets %}
+{% assets "workflow_css" %}
+<link href="{{ ASSET_URL }}" rel="stylesheet">{% endassets %}
+{%- endblock css %}
+
+{%- block javascript %}
+{{ super() }}
+{%- assets "workflow_activity_list_js" %}
+<script src="{{ ASSET_URL }}"></script>{% endassets %}
+{% assets "weko_theme_js_widget" %}
+<script src="{{ ASSET_URL }}"></script>{% endassets %}
+
+<script>
+  function showNResult(){
+    alert("英語版\nSuccessfully Changed Settings.\n日本語版\n設定を変更しました\n\n英語版\nFailurely Changed Settings.\n日本語版\n設定変更に失敗しました");
+    window.history.back();
+  }
+</script>
+{%- endblock javascript %}
+
+{%- block page_body_tabs %}
+{% from "weko_theme/macros/tabs_selector.html" import tabs_selector with context %}
+{{ tabs_selector('workspace',community_id) }}
+{%- endblock page_body_tabs %}
+
+{%- block page_header %}
+{%-if not community %}
+{{ super() }}
+{%- endif %}
+{%- endblock page_header %}
+
+{%- block page_footer %}
+{%-if not community%}
+{{ super() }}
+{%- endif %}
+{%- endblock page_footer %}
+
+{%- block page_body_main %}
+<!-- ワークフローのアクティビティ一覧を参照する。 start -->
+<div class="col-md-offset-2 col-md-10 submit-row">
+  <h1>デフォルト条件設定</h1>
+
+  <!-- <form method="POST" name="default_conditions_form" action={{url_for('rankingsettings.index')}}> -->
+  <form method="GET" name="default_conditions_form" action="/workflow/workspaceDefaultCon/save">
+    <table>
+      <tbody>
+        <tr><h2>絞り込み条件</h2></tr>
+        <tr>
+          <th style="text-align: right;">{{_('リソースタイプ')}}</th>
+          <td style="width:5%"></td>
+          <td>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_show" value="True"
+                {{ 'checked' if is_show else '' }}>
+                {{_('On')}}
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_hide" value="False"
+                {{ 'checked' if not is_show else '' }}>
+                {{_('Off')}}
+            </label>
+          </td>
+        </tr>
+
+        <tr>
+          <th style="text-align: right;">{{_('査読有無（リソースタイプ：論文の場合）')}}</th>
+          <td style="width:5%"></td>
+          <td>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_show" value="True"
+                {{ 'checked' if is_show else '' }}>
+                {{_('On')}}
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_hide" value="False"
+                {{ 'checked' if not is_show else '' }}>
+                {{_('Off')}}
+            </label>
+          </td>
+        </tr>
+
+        <tr>
+          <th style="text-align: right;">{{_('論文への関連有無（リソースタイプ：根拠データの場合）')}}</th>
+          <td style="width:5%"></td>
+          <td>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_show" value="True"
+                {{ 'checked' if is_show else '' }}>
+                {{_('On')}}
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_hide" value="False"
+                {{ 'checked' if not is_show else '' }}>
+                {{_('Off')}}
+            </label>
+          </td>
+        </tr>
+
+        <tr>
+          <th style="text-align: right;">{{_('未定')}}</th>
+          <td style="width:5%"></td>
+          <td>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_show" value="True"
+                {{ 'checked' if is_show else '' }}>
+                {{_('On')}}
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_hide" value="False"
+                {{ 'checked' if not is_show else '' }}>
+                {{_('Off')}}
+            </label>
+          </td>
+        </tr>
+
+        <tr>
+          <th style="text-align: right;">{{_('未定')}}</th>
+          <td style="width:5%"></td>
+          <td>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_show" value="True"
+                {{ 'checked' if is_show else '' }}>
+                {{_('On')}}
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_hide" value="False"
+                {{ 'checked' if not is_show else '' }}>
+                {{_('Off')}}
+            </label>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- </form>
+
+    <form> -->
+    <table>
+      <tbody>
+        <tr><h2>並べ替え項目</h2></tr>
+        <tr>
+          <th style="text-align: right;">{{_('出版日')}}</th>
+          <td style="width:5%"></td>
+          <td>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_show" value="True"
+                {{ 'checked' if is_show else '' }}>
+                {{_('asc')}}
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_hide" value="False"
+                {{ 'checked' if not is_show else '' }}>
+                {{_('desc')}}
+            </label>
+          </td>
+        </tr>
+
+        <tr>
+          <th style="text-align: right;">{{_('アクセス数')}}</th>
+          <td style="width:5%"></td>
+          <td>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_show" value="True"
+                {{ 'checked' if is_show else '' }}>
+                {{_('asc')}}
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_hide" value="False"
+                {{ 'checked' if not is_show else '' }}>
+                {{_('desc')}}
+            </label>
+          </td>
+        </tr>
+
+        <tr>
+          <th style="text-align: right;">{{_('ダウンロード数')}}</th>
+          <td style="width:5%"></td>
+          <td>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_show" value="True"
+                {{ 'checked' if is_show else '' }}>
+                {{_('asc')}}
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_hide" value="False"
+                {{ 'checked' if not is_show else '' }}>
+                {{_('desc')}}
+            </label>
+          </td>
+        </tr>
+
+        <tr>
+          <th style="text-align: right;">{{_('未定')}}</th>
+          <td style="width:5%"></td>
+          <td>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_show" value="True"
+                {{ 'checked' if is_show else '' }}>
+                {{_('asc')}}
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_hide" value="False"
+                {{ 'checked' if not is_show else '' }}>
+                {{_('desc')}}
+            </label>
+          </td>
+        </tr>
+
+        <tr>
+          <th style="text-align: right;">{{_('未定')}}</th>
+          <td style="width:5%"></td>
+          <td>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_show" value="True"
+                {{ 'checked' if is_show else '' }}>
+                {{_('asc')}}
+            </label>
+            <label class="radio-inline">
+                <input type="radio" name="is_show" id="ranking_hide" value="False"
+                {{ 'checked' if not is_show else '' }}>
+                {{_('desc')}}
+            </label>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- <input type="submit" class="btn btn-primary" onclick="showNResult()"" value="Save"> -->
+    <input type="button" class="btn btn-primary" onclick="showNResult()"" value="Save">
+    <input type="button" class="btn btn-danger" onclick="history.back()" value="Cancel">
+  </form>
+  <br>
+</div>
+<!-- ワークフローのアクティビティ一覧を参照する。 end -->
+
+{%- endblock page_body_main %}
