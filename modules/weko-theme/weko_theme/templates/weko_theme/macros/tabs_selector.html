@@ -34,5 +34,5 @@
     {% endif %}
   {%- endif %}
   <li role="presentation" class="{{ check_ranking_show() }} {% if tab_value=='rank' %}active{% endif %}"><a href="{{url_for('weko_items_ui.ranking')}}">{{ _('Ranking') }}</a></li>
-  <li role="presentation" {% if tab_value=='flow' %}class="active"{% endif %}><a href="{{url_for('weko_workflow.workspace')}}">{{ _('workspace') }}</a></li>
+  <li role="presentation" {% if tab_value=='workspace' %}class="active"{% endif %}><a href="{{url_for('weko_workflow.workspace')}}">{{ _('workspace') }}</a></li>
 {% endmacro %}

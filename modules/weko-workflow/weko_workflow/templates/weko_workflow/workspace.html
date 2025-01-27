@@ -1,622 +1,609 @@
 {#
-    # This file is part of WEKO3.
-    # Copyright (C) 2017 National Institute of Informatics.
-    #
-    # WEKO3 is free software; you can redistribute it
-    # and/or modify it under the terms of the GNU General Public License as
-    # published by the Free Software Foundation; either version 2 of the
-    # License, or (at your option) any later version.
-    #
-    # WEKO3 is distributed in the hope that it will be
-    # useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
-    # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    # General Public License for more details.
-    #
-    # You should have received a copy of the GNU General Public License
-    # along with WEKO3; if not, write to the
-    # Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
-    # MA 02111-1307, USA.
-    #}
-    
-    {%- extends config.WEKO_WORKFLOW_BASE_TEMPLATE %}
-    {%- from "invenio_communities/macros.html" import community_header %}
-    
-    {%- block css %}
-    {{ super() }}
-    {% assets "workflow_datepicker_css" %}<link href="{{ ASSET_URL }}" rel="stylesheet">{% endassets %}
-    {% assets "workflow_css" %}<link href="{{ ASSET_URL }}" rel="stylesheet">
-    {% endassets %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='weko_workflow/style.css') }}">
-    {%- endblock css %}
-    
-    {%- block javascript %}
-    {{ super() }}
-    {%- assets "workflow_activity_list_js" %}
-    <script src="{{ ASSET_URL }}"></script>{% endassets %}
-    {% assets "weko_theme_js_widget" %}
-    <script src="{{ ASSET_URL }}"></script>{% endassets %}
+  # This file is part of WEKO3.
+  # Copyright (C) 2017 National Institute of Informatics.
+  #
+  # WEKO3 is free software; you can redistribute it
+  # and/or modify it under the terms of the GNU General Public License as
+  # published by the Free Software Foundation; either version 2 of the
+  # License, or (at your option) any later version.
+  #
+  # WEKO3 is distributed in the hope that it will be
+  # useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  # General Public License for more details.
+  #
+  # You should have received a copy of the GNU General Public License
+  # along with WEKO3; if not, write to the
+  # Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+  # MA 02111-1307, USA.
+  #}
+  
+  {%- extends config.WEKO_WORKFLOW_BASE_TEMPLATE %}
+  {%- from "invenio_communities/macros.html" import community_header %}
+  
+  {%- block css %}
+  {{ super() }}
+  {% assets "workflow_datepicker_css" %}<link href="{{ ASSET_URL }}" rel="stylesheet">{% endassets %}
+  {% assets "workflow_css" %}<link href="{{ ASSET_URL }}" rel="stylesheet">
+  {% endassets %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='weko_workflow/style.css') }}">
 
-    {%- endblock javascript %}
-    
-    {%- block page_body_tabs %}
-    {% from "weko_theme/macros/tabs_selector.html" import tabs_selector with context %}
-    {{ tabs_selector('workspace',community_id) }}
-    {%- endblock page_body_tabs %}
-    
-    {%- block page_header %}
-    {%-if not community %}
-    {{ super() }}
-    {%- endif %}
-    {%- endblock page_header %}
-    
-    {%- block page_footer %}
-    {%-if not community%}
-    {{ super() }}
-    {%- endif %}
-    {%- endblock page_footer %}
-    
-    {% block page_body %}
-    {%-if not community %}
-    {{ super() }}
-    {%- else %}
-    <div class="communities">
-      <div id="community-id" name="community-id" hidden>{{ community.id }}</div>
-      {{ community_header(community, subtitle='') }}
-      <div id="page_body" class="grid-stack hidden" {%- if render_widgets %}style="display: None;" {%- endif %}>
-        <div id="main_contents">
-          {{ super() }}
-        </div>
+  <style>
+    #content {
+      display: none;
+    }
+  </style>
+
+  {%- endblock css %}
+  
+  {%- block javascript %}
+  {{ super() }}
+  {%- assets "workflow_activity_list_js" %}
+  <script src="{{ ASSET_URL }}"></script>{% endassets %}
+  {% assets "weko_theme_js_widget" %}
+  <script src="{{ ASSET_URL }}"></script>{% endassets %}
+
+  <script>
+    const button = document.getElementById('toggleButton');
+    const content = document.getElementById('content');
+  
+    button.addEventListener('click', function () {
+      if (content.classList.contains('expanded')) {
+        content.classList.remove('expanded');
+        content.style.display = 'none';
+      } else {
+        content.classList.add('expanded');
+        content.style.display = 'block'; 
+      }
+    });
+  </script>
+
+  {%- endblock javascript %}
+  
+  {%- block page_body_tabs %}
+  {% from "weko_theme/macros/tabs_selector.html" import tabs_selector with context %}
+  {{ tabs_selector('workspace',community_id) }}
+  {%- endblock page_body_tabs %}
+  
+  {%- block page_header %}
+  {%-if not community %}
+  {{ super() }}
+  {%- endif %}
+  {%- endblock page_header %}
+  
+  {%- block page_footer %}
+  {%-if not community%}
+  {{ super() }}
+  {%- endif %}
+  {%- endblock page_footer %}
+  
+  {% block page_body %}
+  {%-if not community %}
+  {{ super() }}
+  {%- else %}
+  <div class="communities">
+    <div id="community-id" name="community-id" hidden>{{ community.id }}</div>
+    {{ community_header(community, subtitle='') }}
+    <div id="page_body" class="grid-stack hidden" {%- if render_widgets %}style="display: None;" {%- endif %}>
+      <div id="main_contents">
+        {{ super() }}
       </div>
-      {%- from "weko_theme/macros/footer-community.html" import community_footer_widget %}
-      {{ community_footer_widget(render_widgets, community, link=False, subtitle='') }}
     </div>
-    <div class="communities"></div>
-    {%- endif %}
-    {% endblock page_body %}
-    
-    {%- block page_body_main %}
-    <div role="navigation">
-      <ul class="nav nav-tabs">
-        <li role="presentation" {%-if tab == 'todo' %} class="active" {%- endif%}>
-          <a href="javascript:void(0);" class="activity_tab" data-tab="todo">アイテム一覧</a></li>
-        <!-- # TODO アイテム登録画面を作成する-->
-        <li role="presentation" {%-if tab == 'wait' %} class="active" {%- endif%}>
-          <a href="javascript:void(0);" class="activity_tab" data-tab="wait">アイテム登録</a></li>
-    
-        <!-- <li role="presentation" {%-if tab == 'all' %} class="active" {%- endif%}>
-          <a href="javascript:void(0);" class="activity_tab" data-tab="all">アイテム出力</a></li> -->
-        <li class="dropdown">
-          <a class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)"
-            aria-expanded="false">絞り込み<strong class="caret"></strong></a>
-          <ul class="dropdown-menu">
-            {%- for filter in filters %}
-              {%- if filter == "workflow" %}
-                <li>
-                  <a href="javascript:void(0)" class="filter_option" id="workflow" data-name="workflow">リソースタイプ</a>
-                </li>
-              {%- elif filter == "user" %}
-                <li>
-                  <a href="javascript:void(0)" class="filter_option" id="user" data-name="user">査読</a>
-                </li>
-              {%- elif filter == "item" %}
-                <li>
-                  <a href="javascript:void(0)" class="filter_option" id="item" data-name="item">資金別情報</a>
-                </li>
-              {%- elif filter == "status" %}
-                <li>
-                  <a href="javascript:void(0)" class="filter_option" id="status" data-name="status">論文</a>
-                </li>
-              {%- elif filter == "action" %}
-                <li>
-                  <a href="javascript:void(0)" class="filter_option" id="action" data-name="action">根拠データ</a>
-                </li>
-              {%- elif filter == "update" %}
-                <li>
-                  <a href="javascript:void(0)" class="filter_option" id="update" data-name="update">本文ファイル</a>
-                </li>
-              {%- endif %}
-            {%- endfor %}
-          </ul>
-        </li>
-
-        <!-- 検索バー -->
-        <li role="presentation" style="flex: 1; display: flex; justify-content: center; align-items: center; margin: 0 10px;">
-            <div class="search-container" style="text-align: center; margin-bottom: 0;">
-                <input
-                  type="text"
-                  id="searchInput"
-                  class="form-control"
-                  placeholder="Search "
-                  style="width: 300px; display: inline-block;"
-                />
-            </div>
-        </li>
-
-        <!-- アイテム出力ボタン -->
-        <li role="presentation" style="float: right; margin-right: 20px;">
-            <button id="export_button" class="btn btn-primary">アイテム出力</button>
-        </li>
+    {%- from "weko_theme/macros/footer-community.html" import community_footer_widget %}
+    {{ community_footer_widget(render_widgets, community, link=False, subtitle='') }}
+  </div>
+  <div class="communities"></div>
+  {%- endif %}
+  {% endblock page_body %}
+  
+  {%- block page_body_main %}
+  <div role="navigation">
+    <ul class="nav nav-tabs">
+      <li role="presentation" {%-if tab == 'todo' %} class="active" {%- endif%}>
+        <a href="javascript:void(0);" class="activity_tab" data-tab="todo">アイテム一覧</a></li>
+      <!-- # TODO アイテム登録画面を作成する-->
+      <!-- <li role="presentation" {%-if tab == 'wait' %} class="active" {%- endif%}>
+        <a href="javascript:void(0);" class="activity_tab" data-tab="wait">アイテム登録</a></li> -->
+      <li role="presentation" {%-if tab == 'item_tab' %} class="active" {%- endif%}>
         
-        <!-- # TODO デフォルト設定 guan.shuang 20241211 start-->
-        <li class="" style="float: right; margin-right: 20px;">
-          <a href="{{url_for('weko_workflow.workspaceDefaultConditionsSetting')}}">デフォルト設定 </a>
-        </li>
-        <!-- # TODO デフォルト設定 guan.shuang 20241211 end-->
+        <!-- <a href="{{url_for('weko_workflow.workspaceItemRegistration')}}" class="" >アイテム登録</a></li> -->
+        <a href="{{ url_for('weko_workflow.itemregister') }}" class="activity_tab" data-tab="wait">アイテム登録</a> 
+  
+      <!-- # TODO 絞り込み　guan.shuang 20241213 start-->
+      <li class="dropdown">
+        <a id="toggleButton" class="btn dropdown-toggle" data-toggle="dropdown" href="javascript:void(0)"
+        aria-expanded="false">{{_('絞り込み表示')}}<strong class="caret"></strong></a>
+      </li>
+      <!-- # TODO 絞り込み　guan.shuang 20241213 end-->
 
-      </ul>
-      {%- if send_mail -%}
-        <button class="btn btn-default style-button pull-right" id="btn_send_mail">
-          <span class="glyphicon glyphicon-send"></span>&nbsp; {{ _('Send Mail') }}
-        </button>
-      {%- endif %}
-    </div>
-    <br>
-    <div class="row">
-      <form class="form-horizontal col-sm-7" action="javascript:void(0);" id="filter_form">
-        <div class="col-sm-12">
-          <!-- <div class="form-group">
-            <label class="col-sm-2" for="created">{{_('Created')}}</label>
-            <div class="col-sm-7" id="create">
-              <div class="input-group col-sm-10">
-                <input type="text" class="form-control" name="createdfrom" id="createdfrom"
-                   maxlength="10" placeholder="yyyy-mm-dd">
-                <span class="input-group-addon">-</span>
-                <input type="text" class="form-control" maxlength="10" name="createdto" id="createdto"
-                   placeholder="yyyy-mm-dd">
-              </div>
-            </div>
-          </div> -->
-          <div id="workflow_group">
+      <!-- 検索バー -->
+      <li role="presentation" style="flex: 1; display: flex; justify-content: center; align-items: center; margin: 0 10px;">
+          <div class="search-container" style="text-align: center; margin-bottom: 0;">
+              <input
+                type="text"
+                id="searchInput"
+                class="form-control"
+                placeholder="Search "
+                style="width: 300px; display: inline-block;"
+              />
           </div>
-          <div id="user_group">
-          </div>
-          <div id="item_group">
-          </div>
-          <div id="status_group">
-          </div>
+      </li>
+
+      <!-- アイテム出力ボタン -->
+      <li role="presentation" style="float: right; margin-right: 20px;">
+          <button id="export_button" class="btn btn-primary">アイテム出力</button>
+      </li>
+      
+    </ul>
+    {%- if send_mail -%}
+      <button class="btn btn-default style-button pull-right" id="btn_send_mail">
+        <span class="glyphicon glyphicon-send"></span>&nbsp; {{ _('Send Mail') }}
+      </button>
+    {%- endif %}
+  </div>
+  <br>
+  <div class="row">
+    <form class="form-horizontal col-sm-7" action="javascript:void(0);" id="filter_form">
+      <div class="col-sm-12">
+        <div id="workflow_group">
         </div>
-      </form>
-      <input type="hidden" id="action_doing" name="action_doing" value="{{_('action_doing')}}">
-      <input type="hidden" id="action_done" name="action_done" value="{{_('action_done')}}">
-      <input type="hidden" id="action_cancel" name="action_cancel" value="{{_('action_canceled')}}">
-      {%-if name_param != '' %}
-      <input type="hidden" id="change_page_param" value="{{name_param}}">
-      {%- endif%}
-    
-    </div>
-
-    <!-- # TODO 並べ替え　guan.shuang 20241211 start-->
-    <div class="form-inline flow-root">
-      <div class="pull-right">
-
-        <div class="form-group">
-          {{_('Display order')}}:
-          <select class="form-control" id="sort_item">
-            <option value="1">出版年月</option>
-            <option value="2">アクセス数</option>
-            <option value="3">ダウンロード数</option>
-            <option value="4">未定</option>
-            <option value="5">未定</option>
-          </select>
-          <select class="form-control" id="sort_ascdesc">
-            <option value="1">asc</option>
-            <option value="2">desc</option>
-          </select>
+        <div id="user_group">
         </div>
-    
-        <div class="form-group">
-          {{_('Display number')}}:
-          <select class="form-control" id="page_count">
-            <option value="20">20</option>
-            <option value="50">50</option>
-            <option value="100">100</option>
-          </select>
+        <div id="item_group">
+        </div>
+        <div id="status_group">
         </div>
       </div>
+    </form>
+    <input type="hidden" id="action_doing" name="action_doing" value="{{_('action_doing')}}">
+    <input type="hidden" id="action_done" name="action_done" value="{{_('action_done')}}">
+    <input type="hidden" id="action_cancel" name="action_cancel" value="{{_('action_canceled')}}">
+    {%-if name_param != '' %}
+    <input type="hidden" id="change_page_param" value="{{name_param}}">
+    {%- endif%}
+  
+  </div>
+
+  <!-- # TODO 並べ替え　guan.shuang 20241211 start-->
+  <div class="form-inline flow-root">
+    <div id="content">
+      <div class="row row-4">
+        <h3>・リソースタイプ（47個）</h3>
+        <h3>・査読有無（リソースタイプ：論文の場合）</h3>
+        <h3>・論文への関連有無（リソースタイプ：根拠データの場合）</h3>
+        <h3>・資金別情報</h3>
+        <h3>・本文ファイル有無</h3>
+        <h3>・お気に入り有無</h3>
+        <div class="col-xs-1 col-xs-offset-3">
+          <button id="detail-search-btn" type="button" class="btn btn-primary" ng-click="detail_search()" onclick="location.reload();"
+            style="float:right;">
+            <span class="glyphicon glyphicon-search"></span>
+            {{_('絞り込み表示')}}&nbsp
+          </button>
+        </div>
+        <div class="col-xs-1">
+          <button id="clear-search-btn" type="button" class="btn btn-default" ng-click="detail_search_clear()" onclick="location.reload();">
+            <span class="glyphicon glyphicon-remove"></span>
+            {{_('クリア')}}&nbsp
+          </button>
+        </div>
+        <div class="col-xs-1">
+          <button id="clear-search-btn" type="button" class="btn btn-primary" ng-click="detail_search_clear()" onclick="location.reload();"
+          style="float:right;">
+            <span class="glyphicon glyphicon-save"></span>
+            {{_('デファクト条件設定')}}&nbsp
+          </button>
+        </div>
+        <div class="col-xs-1">
+          <button id="clear-search-btn" type="button" class="btn btn-default" ng-click="detail_search_clear()" onclick="location.reload();">
+            <span class="glyphicon glyphicon-remove"></span>
+            {{_('デファクト条件設定リセット')}}&nbsp
+          </button>
+        </div>
     </div>
-    <!-- # TODO 並べ替え　guan.shuang 20241211 end-->
+  </div>
+  <div class="pull-right">
+    <div class="form-group">
+      {{_('Display number')}}:
+      <select class="form-control" id="page_count">
+        <option value="20">20</option>
+        <option value="50">50</option>
+        <option value="100">100</option>
+      </select>
+    </div>
+  </div>
+  <!-- # TODO 並べ替え　guan.shuang 20241211 end-->
 
 
-    <!-- # TODO -->
-    <div class="row">
-      <div class="col-sm-12">
-        <div class="table-responsive">
-          <table class="table table-striped table-bordered table-responsive">
-            <thead>
-              <tr>
-                <!-- <th>{{ _('No.') }}</th>
-                <th>DOI</th>
-                {%- for column in columns %}
-                  {%- if column == "title" %}
-                    <th>タイトル</th>
-                  {%- elif column == "application_date" %}
-                    <th>えええ</th>
-                  {%- elif column == "approved_date" %}
-                    <th>あああ</th>
-                  {%- elif column == "kaigimei" %}
-                    <th>雑誌名</th>
-                  {%- elif column == "title" %}
-                    <th>会議名</th>
-                  {%- elif column == "flows_name" %}
-                    <th>資金名</th>
-                  {%- elif column == "action_name" %}
-                    <th>リソースタイプ</th>
-                  {%- elif column == "StatusDesc" %}
-                    <th>査読</th>
-                  {%- elif column == "email" %}
-                    <th>根拠データ</th>
-                  {%- elif column == "kaigimei" %}
-                    <th>本文ファイル</th>
-                  {%- elif column == "resourcetype" %}
-                    <th>出版年月</th>
-                  {%- elif column == "sadoku" %}
-                    <th>アクセス数</th>
-                  {%- elif column == "honbunfile" %}
-                    <th>ダウンロード数</th>
-                  {%- elif column == "nengetu" %}
-                    <th>作成日</th>
-                  {%- elif column == "access" %}
-                    <th>更新日</th>
-                  {%- elif column == "download" %}
-                    <th>お気に入り</th>
-                  {%- endif %}
-                {%- endfor %} -->
-                <th>{{ _('No.') }}</th>
-                <th>お気に入り</th>
-                <th>DOI</th>
-                <th>タイトル</th>
-                <th>雑誌名</th>
-                <th>会議名</th>
-                <th>リソースタイプ</th>
-                <th>査読有無</th>
-                <th>エンバーゴ有無</th>
-                <th>根拠データ</th>
-                <th>本文ファイル</th>
-                <th>出版年月</th>
-                <!-- <th>アクセス数</th>
-                <th>ダウンロード数</th> -->
-                <th>フィードバックメール</th>
-                <th>制限公開</th>
-                <th>作成日</th>
-                <th>更新日</th>
-              </tr>
+  <!-- # TODO -->
+  <div class="row">
+    <div class="col-sm-12">
+      <div class="table-responsive">
+        <table class="table table-striped table-bordered table-responsive">
+          <thead>
+            <tr>
+              <!-- <th>{{ _('No.') }}</th>
+              <th>DOI</th>
+              {%- for column in columns %}
+                {%- if column == "title" %}
+                  <th>タイトル</th>
+                {%- elif column == "application_date" %}
+                  <th>えええ</th>
+                {%- elif column == "approved_date" %}
+                  <th>あああ</th>
+                {%- elif column == "kaigimei" %}
+                  <th>雑誌名</th>
+                {%- elif column == "title" %}
+                  <th>会議名</th>
+                {%- elif column == "flows_name" %}
+                  <th>資金名</th>
+                {%- elif column == "action_name" %}
+                  <th>リソースタイプ</th>
+                {%- elif column == "StatusDesc" %}
+                  <th>査読</th>
+                {%- elif column == "email" %}
+                  <th>根拠データ</th>
+                {%- elif column == "kaigimei" %}
+                  <th>本文ファイル</th>
+                {%- elif column == "resourcetype" %}
+                  <th>出版年月</th>
+                {%- elif column == "sadoku" %}
+                  <th>アクセス数</th>
+                {%- elif column == "honbunfile" %}
+                  <th>ダウンロード数</th>
+                {%- elif column == "nengetu" %}
+                  <th>作成日</th>
+                {%- elif column == "access" %}
+                  <th>更新日</th>
+                {%- elif column == "download" %}
+                  <th>お気に入り</th>
+                {%- endif %}
+              {%- endfor %} -->
+              <th><input type="checkbox"></th>
+              <th>{{ _('No.') }}</th>
+              <th></th>
+              <th></th>
+              <th></th>
+              <th>DOI</th>
+              <th>タイトル↑↓</th>
+              <th>雑誌名</th>
+              <th>会議名</th>
+              <th>リソースタイプ</th>
+              <th>根拠データ</th>
+              <th>本文ファイル</th>
+              <th>出版年月↑↓</th>
+              <th>アクセス数↑↓</th>
+              <th>ダウンロード数↑↓</th>
+              <th>アクション</th>
+              <th>ステータス</th>
+              <th>フィードバックメール</th>
+              <th>制限公開</th>
+              <th>作成日</th>
+              <th>更新日</th>
+            </tr>
 
-              <!-- # TODO アイテム情報イメージ　guan.shuang 20241211 start-->
-              <tr>
-                <th>001</th>
-                <th>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star" viewBox="0 0 16 16">
-                    <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.56.56 0 0 0-.163-.505L1.71 6.745l4.052-.576a.53.53 0 0 0 .393-.288L8 2.223l1.847 3.658a.53.53 0 0 0 .393.288l4.052.575-2.906 2.77a.56.56 0 0 0-.163.506l.694 3.957-3.686-1.894a.5.5 0 0 0-.461 0z"/>
-                  </svg>
-                  // 
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
-                    <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
-                  </svg>
-                </th>
-                <th>doi12312312313</th>
-                <th><a>タイトルリンク01(誘導)</a></th>
-                <th>雑誌名01</th>
-                <th>会議名01</th>
-                <th>リソースタイプ01</th>
-                <th>
-                  未読
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-book" viewBox="0 0 16 16">
-                    <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/>
-                  </svg>
-                  /既読
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-book-fill" viewBox="0 0 16 16">
-                    <path d="M8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/>
-                  </svg>
-                </th>
-                <th>エンバーゴ有無
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-range" viewBox="0 0 16 16">
-                    <path d="M9 7a1 1 0 0 1 1-1h5v2h-5a1 1 0 0 1-1-1M1 9h4a1 1 0 0 1 0 2H1z"/>
-                    <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h1a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h1V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V4z"/>
-                  </svg>
-                </th>
-                <th>根拠データ01</th>
-                <th>本文ファイル01</th>
-                <th>出版年月01</th>
-                <th>フィードバックメール01</th>
-                <th>制限公開01</th>
-                <th>作成日01</th>
-                <th>更新日01</th>
-              </tr>
-               <!-- # TODO アイテム情報イメージ　guan.shuang 20241211 end-->
+            <!-- # TODO アイテム情報イメージ　guan.shuang 20241211 start-->
+            <tr>
+              <th><input type="checkbox"></th>
+              <th>001</th>
+              <th>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star" viewBox="0 0 16 16">
+                  <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.56.56 0 0 0-.163-.505L1.71 6.745l4.052-.576a.53.53 0 0 0 .393-.288L8 2.223l1.847 3.658a.53.53 0 0 0 .393.288l4.052.575-2.906 2.77a.56.56 0 0 0-.163.506l.694 3.957-3.686-1.894a.5.5 0 0 0-.461 0z"/>
+                </svg>
+                <!-- <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
+                  <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                </svg> -->
+              </th>
+              <th>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-book" viewBox="0 0 16 16">
+                  <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/>
+                </svg>
+                <!-- <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-book-fill" viewBox="0 0 16 16">
+                  <path d="M8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/>
+                </svg> -->
+              </th>
+              <th>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-calendar-range" viewBox="0 0 16 16">
+                  <path d="M9 7a1 1 0 0 1 1-1h5v2h-5a1 1 0 0 1-1-1M1 9h4a1 1 0 0 1 0 2h3z"/>
+                  <path d="M3.5 0a.5.5 0 0 1 .5.5V1h8V.5a.5.5 0 0 1 1 0V1h3a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2V3a2 2 0 0 1 2-2h3V.5a.5.5 0 0 1 .5-.5M1 4v10a1 1 0 0 0 1 1h32a1 1 0 0 0 1-1V4z"/>
+                </svg>
+              </th>
+              <th>doi12312312313</th>
+              <th><a>タイトルリンク01(誘導)</a></th>
+              <th>雑誌名01</th>
+              <th>会議名01</th>
+              <th>論文</th>
+              <th>根拠データ01</th>
+              <th>本文ファイル01</th>
+              <th>2024-12</th>
+              <th>10</th>
+              <th>20</th>
+              <th>Item Registration</th>
+              <th>作業中</th>
+              <th>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope-at" viewBox="0 0 16 16">
+                  <path d="M2 2a2 2 0 0 0-2 2v8.01A2 2 0 0 0 2 14h5.5a.5.5 0 0 0 0-1H2a1 1 0 0 1-.966-.741l5.64-3.471L8 9.583l7-4.2V8.5a.5.5 0 0 0 1 0V4a2 2 0 0 0-2-2zm3.708 6.208L1 11.105V5.383zM1 4.217V4a1 1 0 0 1 1-1h32a1 1 0 0 1 1 1v.217l-7 4.2z"/>
+                  <path d="M14.247 14.269c1.01 0 1.587-.857 1.587-2.025v-.21C15.834 10.43 14.64 9 12.52 9h-.035C10.42 9 9 10.36 9 12.432v.214C9 14.82 10.438 16 12.358 16h.044c.594 0 1.018-.074 1.237-.175v-.73c-.245.11-.673.18-1.18.18h-.044c-1.334 0-2.571-.788-2.571-2.655v-.157c0-1.657 1.058-2.724 2.64-2.724h.04c1.535 0 2.484 1.05 2.484 2.326v.118c0 .975-.324 1.39-.639 1.39-.232 0-.41-.148-.41-.42v-2.19h-.906v.569h-.03c-.084-.298-.368-.63-.954-.63-.778 0-1.259.555-1.259 1.4v.528c0 .892.49 1.434 1.26 1.434.471 0 .896-.227 1.014-.643h.043c.118.42.617.648 1.12.648m-2.453-1.588v-.227c0-.546.227-.791.573-.791.297 0 .572.192.572.708v.367c0 .573-.253.744-.564.744-.354 0-.581-.215-.581-.8Z"/>
+                </svg>
+              </th>
+              <th>公開</th>
+              <th>20211211</th>
+              <th>20211211</th>
+            </tr>
+            <tr>
+              <th><input type="checkbox"></th>
+              <th>002</th>
+              <th>
+                <!-- <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star" viewBox="0 0 16 16">
+                  <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.56.56 0 0 0-.163-.505L1.71 6.745l4.052-.576a.53.53 0 0 0 .393-.288L8 2.223l1.847 3.658a.53.53 0 0 0 .393.288l4.052.575-2.906 2.77a.56.56 0 0 0-.163.506l.694 3.957-3.686-1.894a.5.5 0 0 0-.461 0z"/>
+                </svg> -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
+                  <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                </svg>
+              </th>
+              <th>
+                <!-- <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-book" viewBox="0 0 16 16">
+                  <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/>
+                </svg> -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-book-fill" viewBox="0 0 16 16">
+                  <path d="M8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/>
+                </svg>
+              </th>
+              <th>
+                -
+              </th>
+              <th>doi789789789789</th>
+              <th><a>タイトルリンク02(誘導)</a></th>
+              <th>雑誌名02</th>
+              <th>会議名02</th>
+              <th>論文</th>
+              <th>根拠データ02</th>
+              <th>本文ファイル02</th>
+              <th>2024-11</th>
+              <th>50</th>
+              <th>60</th>
+              <th>End</th>
+              <th>作業済</th>
+              <th>-</th>
+              <th>非公開</th>
+              <th>20211211</th>
+              <th>20211211</th>
+            </tr>
+            <tr>
+              <th><input type="checkbox"></th>
+              <th>003</th>
+              <th>
+                <!-- <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star" viewBox="0 0 16 16">
+                  <path d="M2.866 14.85c-.078.444.36.791.746.593l4.39-2.256 4.389 2.256c.386.198.824-.149.746-.592l-.83-4.73 3.522-3.356c.33-.314.16-.888-.282-.95l-4.898-.696L8.465.792a.513.513 0 0 0-.927 0L5.354 5.12l-4.898.696c-.441.062-.612.636-.283.95l3.523 3.356-.83 4.73zm4.905-2.767-3.686 1.894.694-3.957a.56.56 0 0 0-.163-.505L1.71 6.745l4.052-.576a.53.53 0 0 0 .393-.288L8 2.223l1.847 3.658a.53.53 0 0 0 .393.288l4.052.575-2.906 2.77a.56.56 0 0 0-.163.506l.694 3.957-3.686-1.894a.5.5 0 0 0-.461 0z"/>
+                </svg> -->
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
+                  <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+                </svg>
+              </th>
+              <th>
+                <!-- <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-book" viewBox="0 0 16 16">
+                  <path d="M1 2.828c.885-.37 2.154-.769 3.388-.893 1.33-.134 2.458.063 3.112.752v9.746c-.935-.53-2.12-.603-3.213-.493-1.18.12-2.37.461-3.287.811zm7.5-.141c.654-.689 1.782-.886 3.112-.752 1.234.124 2.503.523 3.388.893v9.923c-.918-.35-2.107-.692-3.287-.81-1.094-.111-2.278-.039-3.213.492zM8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/>
+                </svg> -->
+                <!-- <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-book-fill" viewBox="0 0 16 16">
+                  <path d="M8 1.783C7.015.936 5.587.81 4.287.94c-1.514.153-3.042.672-3.994 1.105A.5.5 0 0 0 0 2.5v11a.5.5 0 0 0 .707.455c.882-.4 2.303-.881 3.68-1.02 1.409-.142 2.59.087 3.223.877a.5.5 0 0 0 .78 0c.633-.79 1.814-1.019 3.222-.877 1.378.139 2.8.62 3.681 1.02A.5.5 0 0 0 16 13.5v-11a.5.5 0 0 0-.293-.455c-.952-.433-2.48-.952-3.994-1.105C10.413.809 8.985.936 8 1.783"/>
+                </svg> -->
+                -
+              </th>
+              <th>
+                -
+              </th>
+              <th>doi456456456456</th>
+              <th><a>タイトルリンク03(誘導)</a></th>
+              <th>雑誌名03</th>
+              <th>会議名03</th>
+              <th>根拠データ</th>
+              <th>根拠データ03</th>
+              <th>本文ファイル03</th>
+              <th>2024-10</th>
+              <th>80</th>
+              <th>90</th>
+              <th>End</th>
+              <th>作業済</th>
+              <th>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-envelope-at" viewBox="0 0 16 16">
+                  <path d="M2 2a2 2 0 0 0-2 2v8.01A2 2 0 0 0 2 14h5.5a.5.5 0 0 0 0-1H2a1 1 0 0 1-.966-.741l5.64-3.471L8 9.583l7-4.2V8.5a.5.5 0 0 0 1 0V4a2 2 0 0 0-2-2zm3.708 6.208L1 11.105V5.383zM1 4.217V4a1 1 0 0 1 1-1h32a1 1 0 0 1 1 1v.217l-7 4.2z"/>
+                  <path d="M14.247 14.269c1.01 0 1.587-.857 1.587-2.025v-.21C15.834 10.43 14.64 9 12.52 9h-.035C10.42 9 9 10.36 9 12.432v.214C9 14.82 10.438 16 12.358 16h.044c.594 0 1.018-.074 1.237-.175v-.73c-.245.11-.673.18-1.18.18h-.044c-1.334 0-2.571-.788-2.571-2.655v-.157c0-1.657 1.058-2.724 2.64-2.724h.04c1.535 0 2.484 1.05 2.484 2.326v.118c0 .975-.324 1.39-.639 1.39-.232 0-.41-.148-.41-.42v-2.19h-.906v.569h-.03c-.084-.298-.368-.63-.954-.63-.778 0-1.259.555-1.259 1.4v.528c0 .892.49 1.434 1.26 1.434.471 0 .896-.227 1.014-.643h.043c.118.42.617.648 1.12.648m-2.453-1.588v-.227c0-.546.227-.791.573-.791.297 0 .572.192.572.708v.367c0 .573-.253.744-.564.744-.354 0-.581-.215-.581-.8Z"/>
+                </svg>
+              </th>
+              <th>非公開</th>
+              <th>20211211</th>
+              <th>20211211</th>
+            </tr>
+             <!-- # TODO アイテム情報イメージ　guan.shuang 20241211 end-->
 
-            </thead>
-            <tbody>
-            {%- for activity in activities %}
-              <tr class="">
-                <th scope="row">{{ loop.index + size|int * ( pages|int - 1) }}</th>
-                <td>{{ activity.created.date() }}</td>
-                {%- for column in columns %}
-                  {%-if column == "activity_id" %}
-                    {%-if community %}
-                      {% set activity_url =  url_for('weko_workflow.display_activity', activity_id=activity.activity_id, status=activity.type, community=community.id) %}
-                    {%-else %}
-                      {% set activity_url =  url_for('weko_workflow.display_activity', activity_id=activity.activity_id, status=activity.type) %}
-                    {%- endif %}
-                    <td>
-                      <a class="activity-link" href="{{ activity_url }}">{{ activity.activity_id }}</a>
-                    </td>
+          </thead>
+          <tbody>
+          {%- for activity in activities %}
+            <tr class="">
+              <th scope="row">{{ loop.index + size|int * ( pages|int - 1) }}</th>
+              <td>{{ activity.created.date() }}</td>
+              {%- for column in columns %}
+                {%-if column == "activity_id" %}
+                  {%-if community %}
+                    {% set activity_url =  url_for('weko_workflow.display_activity', activity_id=activity.activity_id, status=activity.type, community=community.id) %}
                   {%-else %}
-                    {%-if activity[column] %}
-                      {%- if column == "approved_date" or column == "application_date" or column == "updated" %}
-                        <td>{{ activity[column].strftime('%Y-%m-%d') }}</td>
-                      {%-elif column == "StatusDesc" %}
-                        <td>{{ _(activity[column]) }}</td>
-                      {%- else %}
-                        <td>{{ activity[column] }}</td>
-                      {%- endif %}
-                    {%-else %}
-                      <td></td>
+                    {% set activity_url =  url_for('weko_workflow.display_activity', activity_id=activity.activity_id, status=activity.type) %}
+                  {%- endif %}
+                  <td>
+                    <a class="activity-link" href="{{ activity_url }}">{{ activity.activity_id }}</a>
+                  </td>
+                {%-else %}
+                  {%-if activity[column] %}
+                    {%- if column == "approved_date" or column == "application_date" or column == "updated" %}
+                      <td>{{ activity[column].strftime('%Y-%m-%d') }}</td>
+                    {%-elif column == "StatusDesc" %}
+                      <td>{{ _(activity[column]) }}</td>
+                    {%- else %}
+                      <td>{{ activity[column] }}</td>
                     {%- endif %}
+                  {%-else %}
+                    <td></td>
+                  {%- endif %}
+                {%- endif %}
+              {%- endfor %}
+              {%- if current_user.is_authenticated and current_user.roles and delete_activity_log_enable == True and tab=="all"%}
+                {% set flag_2=True %}
+                {%- for role in current_user.roles %}
+                  {%- if role in activitylog_roles and flag_2==True%}
+                    <th>
+                      <button type="input" class="btn clear-activitylog">{{_('Clear')}}</button>
+                    </th>
+                    {% set flag_2= False %}
                   {%- endif %}
                 {%- endfor %}
-                {%- if current_user.is_authenticated and current_user.roles and delete_activity_log_enable == True and tab=="all"%}
-                  {% set flag_2=True %}
-                  {%- for role in current_user.roles %}
-                    {%- if role in activitylog_roles and flag_2==True%}
-                      <th>
-                        <button type="input" class="btn clear-activitylog">{{_('Clear')}}</button>
-                      </th>
-                      {% set flag_2= False %}
-                    {%- endif %}
-                  {%- endfor %}
-                {%- endif %}
-              </tr>
+              {%- endif %}
+            </tr>
+          {%- endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- # TODO ページング表示.shuang 20241211 start-->
+      <div class="row">
+        <div class="text-center">
+          <ul class="pagination">
+            <li>
+              <a href="javascript:void(0)" class="get-pages" data-pages="">&lt;</a>
+            </li>
+            <li>
+              <a href="javascript:void(0)" class="get-pages" data-pages="">1</a>
+            </li>
+            <li>
+              <a href="javascript:void(0)" class="get-pages" data-pages="">&gt;</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      {#
+      {% if maxpage|int >= 1 %}
+      <div class="row">
+        <div class="text-center">
+          <ul class="pagination">
+            {%-if pages|int <= 1 %}
+            <li class="disabled">
+              <a href="javascript:void(0)">&lt;</a>
+            </li>
+            {%-else%}
+            {% set pagePrevious = pages|int - 1 %}
+            <li>
+              <a href="javascript:void(0)" class="get-pages" data-pages="{{pagePrevious}}">&lt;</a>
+            </li>
+            {%- endif%}
+            {%- for index in range(maxpage|int) %}
+  
+            {%-if index+1 == pages|int %}
+            <li class="active">
+              <a href="javascript:void(0)">{{index+1}}</a>
+            </li>
+            {%-else%}
+            {% set pagecurrent = index|int +1 %}
+            <li>
+              <a href="javascript:void(0)" class="get-pages" data-pages="{{pagecurrent}}">{{index+1}}</a>
+            </li>
+            {%- endif%}
             {%- endfor %}
-            </tbody>
-          </table>
+            {%-if maxpage|int <= pages|int %}
+            <li class="disabled">
+              <a href="javascript:void(0)">&gt;</a>
+            </li>
+            {%-else%}
+            {% set pageNext = pages|int + 1 %}
+            <li>
+              <a href="javascript:void(0)" class="get-pages" data-pages="{{pageNext}}">&gt;</a>
+            </li>
+            {%- endif%}
+          </ul>
         </div>
+      </div>
+      {%- endif%}
+      #}
+      <!-- # TODO ページング表示.shuang 20241211 end-->
 
-        <!-- # TODO ページング表示.shuang 20241211 start-->
-        <div class="row">
-          <div class="text-center">
-            <ul class="pagination">
-              <li>
-                <a href="javascript:void(0)" class="get-pages" data-pages="">&lt;</a>
-              </li>
-              <li>
-                <a href="javascript:void(0)" class="get-pages" data-pages="">1</a>
-              </li>
-              <li>
-                <a href="javascript:void(0)" class="get-pages" data-pages="">&gt;</a>
-              </li>
-            </ul>
-          </div>
-        </div>
-
-        {#
-        {% if maxpage|int >= 1 %}
-        <div class="row">
-          <div class="text-center">
-            <ul class="pagination">
-              {%-if pages|int <= 1 %}
-              <li class="disabled">
-                <a href="javascript:void(0)">&lt;</a>
-              </li>
-              {%-else%}
-              {% set pagePrevious = pages|int - 1 %}
-              <li>
-                <a href="javascript:void(0)" class="get-pages" data-pages="{{pagePrevious}}">&lt;</a>
-              </li>
-              {%- endif%}
-              {%- for index in range(maxpage|int) %}
-    
-              {%-if index+1 == pages|int %}
-              <li class="active">
-                <a href="javascript:void(0)">{{index+1}}</a>
-              </li>
-              {%-else%}
-              {% set pagecurrent = index|int +1 %}
-              <li>
-                <a href="javascript:void(0)" class="get-pages" data-pages="{{pagecurrent}}">{{index+1}}</a>
-              </li>
-              {%- endif%}
-              {%- endfor %}
-              {%-if maxpage|int <= pages|int %}
-              <li class="disabled">
-                <a href="javascript:void(0)">&gt;</a>
-              </li>
-              {%-else%}
-              {% set pageNext = pages|int + 1 %}
-              <li>
-                <a href="javascript:void(0)" class="get-pages" data-pages="{{pageNext}}">&gt;</a>
-              </li>
-              {%- endif%}
-            </ul>
-          </div>
-        </div>
+      <!-- <div>
+        {%-if community%}
+          <button class="btn btn-success pull-right" onClick="window.location.href='{{url_for('weko_workflow.new_activity', community=community.id)}}'; $(this).prop('disabled', true)">
+            <span class="glyphicon glyphicon-plus"></span>&nbsp
+            {{_('New Activity')}}</button>
+        {%-else%}
+          <button class="btn btn-success pull-right" onClick="window.location.href='{{url_for('weko_workflow.new_activity')}}'; $(this).prop('disabled', true)">
+            <span class="glyphicon glyphicon-plus"></span>&nbsp
+            {{_('New Activity')}}</button>
         {%- endif%}
-        #}
-        <!-- # TODO ページング表示.shuang 20241211 end-->
-
-        <!-- <div>
-          {%-if community%}
-            <button class="btn btn-success pull-right" onClick="window.location.href='{{url_for('weko_workflow.new_activity', community=community.id)}}'; $(this).prop('disabled', true)">
-              <span class="glyphicon glyphicon-plus"></span>&nbsp
-              {{_('New Activity')}}</button>
-          {%-else%}
-            <button class="btn btn-success pull-right" onClick="window.location.href='{{url_for('weko_workflow.new_activity')}}'; $(this).prop('disabled', true)">
-              <span class="glyphicon glyphicon-plus"></span>&nbsp
-              {{_('New Activity')}}</button>
-          {%- endif%}
-        </div> -->
-        <span hidden id="item_deleted_msg">{{_("The item you are editing has already been deleted.")}}</span>
-      </div>
+      </div> -->
+      <span hidden id="item_deleted_msg">{{_("The item you are editing has already been deleted.")}}</span>
     </div>
-    
-    <div role="dialog" tabindex="-1" class="fade in modal" id='popup_send'>
-      <div class="send-mail-modal modal-dialog row">
-        <div class="modal-content" role="document">
-          <div class="send-mail-modal-body modal-body">
-            <div class="container-modal">
-              <div class="row">
-                <div class="col-sm-12 col-md-12 col-md-12">
-    
-                  <button type="button" class="pull-right btn_close" id="btn_close">
-                    <span>x</span>
-                  </button>
-                  <div class="row">
-                    <div class="col-sm-12 col-md-12">
-                      <div class="col-sm-2 col-md-2 text-center label_email">{{ _('Email Type') }}</div>
-                      <div class="col-sm-8 col-md-8">
-                        <select class="form-control" id="setTemplate">
-                        {%- for option in options -%}
-                          {%- for key, value in option.items() -%}
-                            <option value="{{key}}">{{value}}</option>
-                          {%- endfor %}
+  </div>
+  
+  <div role="dialog" tabindex="-1" class="fade in modal" id='popup_send'>
+    <div class="send-mail-modal modal-dialog row">
+      <div class="modal-content" role="document">
+        <div class="send-mail-modal-body modal-body">
+          <div class="container-modal">
+            <div class="row">
+              <div class="col-sm-12 col-md-12 col-md-12">
+  
+                <button type="button" class="pull-right btn_close" id="btn_close">
+                  <span>x</span>
+                </button>
+                <div class="row">
+                  <div class="col-sm-12 col-md-12">
+                    <div class="col-sm-2 col-md-2 text-center label_email">{{ _('Email Type') }}</div>
+                    <div class="col-sm-8 col-md-8">
+                      <select class="form-control" id="setTemplate">
+                      {%- for option in options -%}
+                        {%- for key, value in option.items() -%}
+                          <option value="{{key}}">{{value}}</option>
                         {%- endfor %}
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="row">
-                    <div class="col-sm-12 col-md-12">
-                      <table class="table table-striped style-table-modal table-mt" id="table_data">
-                      <span class="data" data-activities="{{activities}}" hidden></span>
-                        <thead>
-                          <tr class="success">
-                            <th class="thWidth style-column"><input type="checkbox" id="checkAll"/></th>
-                            <th class="thWidth style-column">{{ _('No.') }}</th>
-                            <th class="thWidth style-column">{{ _('Activity') }}</th>
-                            <th class="thWidth style-column">{{_('Item')}}</th>
-                            <th class="thWidth style-column">{{_('WorkFlow')}}</th>
-                            <th class="thWidth style-column">{{_('Status')}}</th>
-                            <th class="alignCenter">{{_('User')}}</th>
-                          </tr>
-                        </thead>
-                        <tbody class="check_table">
-                          {%set mail_user_group = []%}
-                          {%if send_mail_user_group %}
-                            {%set mail_user_group = send_mail_user_group%}
-                          {%endif%}
-                          <span hidden id ="req_per_page">{{req_per_page}}</span>
-                          <span hidden id ="send_mail_user_group">{{mail_user_group|tojson}}</span>
-                          <span hidden id ="pagination_visible_pages">{{pagination_visible_pages}}</span>
-                          <span hidden id ="action_list">{{_(action_status)}}</span>
-                          <span hidden id ="item_type_name">{{_(item_type)}}</span>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                  <div class="row">
-                      <div class="col-sm-12 col-md-12 text-center">
-                        <div class="pagination table_data"></div>
-                      </div>
+                      {%- endfor %}
+                      </select>
                     </div>
                   </div>
                 </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn-primary text-white btn btn-default" id="btn_Next" disabled>
-                      <span class="glyphicon glyphicon-check"></span>&nbsp;{{_('Confirm')}}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div role="dialog" tabindex="-1" class="fade in modal" id='popup_approve'>
-      <div class="modal-dialog row send-mail-modal">
-        <div class="modal-content" role="document">
-          <div class="modal-body">
-            <div class="container-modal">
-              <div class="row">
-                <div class="col-sm-12 col-md-12 col-md-12">
-    
-                  <button type="button" class="pull-right btn_close"
-                          id="btn_close_pop2">
-                    <span>x</span>
-                  </button>
-                  <div class="row">
-                    <div>
-                      <div class="col-sm-12 col-md-12 text-center"><span
-                              id="label_template"></span> {{ _('email will be sent.') }}
-                      </div>
-                    </div>
-                  </div>
-                  <div class="row" id="apply_spinner">
-                    <div class="col-sm-12 col-md-12 scroll_y">
-                      <table class="table table-striped style-table-modal table-mt"
-                             id="table_data">
-                        <thead>
+                <div class="row">
+                  <div class="col-sm-12 col-md-12">
+                    <table class="table table-striped style-table-modal table-mt" id="table_data">
+                    <span class="data" data-activities="{{activities}}" hidden></span>
+                      <thead>
                         <tr class="success">
+                          <th class="thWidth style-column"><input type="checkbox" id="checkAll"/></th>
                           <th class="thWidth style-column">{{ _('No.') }}</th>
                           <th class="thWidth style-column">{{ _('Activity') }}</th>
-                          <th class="thWidth style-column">{{ _('Item') }}</th>
-                          <th class="alignCenter">{{ _('User') }}</th>
+                          <th class="thWidth style-column">{{_('Item')}}</th>
+                          <th class="thWidth style-column">{{_('WorkFlow')}}</th>
+                          <th class="thWidth style-column">{{_('Status')}}</th>
+                          <th class="alignCenter">{{_('User')}}</th>
                         </tr>
-                        </thead>
-                        <tbody id="appendHTML"></tbody>
-                      </table>
+                      </thead>
+                      <tbody class="check_table">
+                        {%set mail_user_group = []%}
+                        {%if send_mail_user_group %}
+                          {%set mail_user_group = send_mail_user_group%}
+                        {%endif%}
+                        <span hidden id ="req_per_page">{{req_per_page}}</span>
+                        <span hidden id ="send_mail_user_group">{{mail_user_group|tojson}}</span>
+                        <span hidden id ="pagination_visible_pages">{{pagination_visible_pages}}</span>
+                        <span hidden id ="action_list">{{_(action_status)}}</span>
+                        <span hidden id ="item_type_name">{{_(item_type)}}</span>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 col-md-12 text-center">
+                      <div class="pagination table_data"></div>
                     </div>
                   </div>
-    
-                  <div class="modal-footer">
-                    <button type="button"
-                            class="btn-info text-white btn btn-default pull-left"
-                            id="btn_back">
-                      <span class="glyphicon glyphicon-chevron-left text-white"></span>&nbsp;{{ _('Back') }}
-                    </button>
-                    <button type="button"
-                            class="btn-primary text-white btn btn-default"
-                            id="btn_approve">
-                      <span class="glyphicon glyphicon-send"></span>&nbsp;{{ _('Send') }}
-                    </button>
-                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    
-      <div role="dialog" tabindex="-1" class="fade in modal" id='popup_success'>
-        <div class="modal-dialog row popup_notice">
-          <div class="modal-content" role="document">
-            <div class="modal-header">
-              <h4 class="modal-title">JGSS</h4>
-            </div>
-            <div class="modal-body">
-              <div class="container-modal">
-                <div class="row">
-                  <div class="col-sm-12 col-md-12">{{ _('Email is sent successfully.') }}</div>
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <div class="col text-center">
-                <button type="button" class="btn-default btn-secondary btn btn_ok">
-                  OK
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <!-- 17131 - begin -->
-      <div role="dialog" tabindex="-1" class="fade in modal" id='popup_fail'>
-        <div class="modal-dialog row popup_notice">
-          <div class="modal-content" role="document">
-            <div class="modal-header">
-              <h4 class="modal-title">JGSS</h4>
-            </div>
-            <div class="modal-body">
-              <div class="container-modal">
-                <div class="row">
-                  <div class="col-sm-12 col-md-12">{{ _('Please contact your system administrator.') }}</div>
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <div class="col text-center">
-                <button type="button" class="btn-default btn-secondary btn btn_ok">
-                  OK
+              <div class="modal-footer">
+                <button type="button" class="btn-primary text-white btn btn-default" id="btn_Next" disabled>
+                    <span class="glyphicon glyphicon-check"></span>&nbsp;{{_('Confirm')}}
                 </button>
               </div>
             </div>
@@ -624,107 +611,212 @@
         </div>
       </div>
     </div>
-    
-    <div role="dialog" tabindex="-1" class="fade in modal" id='activitylogs_clear_modal'>
-      <div class="modal-dialog row popup_notice">
-        <div class="modal-content" role="document">
-          <div class="modal-header">
-            <h4 class="modal-title">{{_('Clear Confirm')}}</h4>
-          </div>
-          <div class="modal-body">
-            <div class="container-modal">
-              <div class="row">
-                <div class="col-sm-12 col-md-12">{{ _('Deleted activities cannot be restored.') }}</div>
-                <div class="col-sm-12 col-md-12">{{ _('Are you sure you want to delete filtered activities?') }}</div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <div class="col text-center">
-              <button type="submit" class="btn btn-danger" id="confirm_clear_activitylogs">
-                OK
-              </button>
-              <button type="submit" class="btn btn-primary" id="cancel_clear_activitylogs">
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    
-    <div role="dialog" tabindex="-1" class="fade in modal" id='activitylog_clear_modal'>
-      <div class="modal-dialog row popup_notice">
-        <div class="modal-content" role="document">
-          <div class="modal-header">
-            <h4 class="modal-title">{{_('Clear Confirm')}}</h4>
-          </div>
-          <div class="modal-body">
-            <div class="container-modal">
-              <div class="row">
-                <div class="col-sm-12 col-md-12">{{ _('Deleted activity cannot be restored.') }}</div>
-                <div class="col-sm-12 col-md-12" id="del_activity_id"></div>
-                <div class="col-sm-12 col-md-12">{{ _('Are you sure you want to delete the filtered activity?') }}</div>
-              </div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <div class="col text-center">
-              <button type="submit" class="btn btn-danger" id="confirm_clear_activitylog">
-                OK
-              </button>
-              <button type="submit" class="btn btn-primary" id="cancel_clear_activitylog">
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-        // ダイアログの生成
-        const dialogHtml = `
-            <div id="export_dialog" class="modal fade" tabindex="-1" role="dialog">
-            <div class="modal-dialog" role="document">
-                <div class="modal-content">
-                <div class="modal-header" style="display: flex; justify-content: center; align-items: center;">
-                    <h5 class="modal-title" style="text-align: center; flex: 1;">以下のオプションを選択してください：</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; right: 10px;">
-                    <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
-                    <p style="margin-bottom: 20px;"></p>
-                    <div class="button-container" style="display: flex; justify-content: center; gap: 10px;">
-                    <button id="export_selected" class="btn btn-primary">選択アイテム出力</button>
-                    <button id="export_all" class="btn btn-danger">全て出力</button>
-                    <button id="export_cancel" class="btn btn-secondary" data-dismiss="modal">キャンセル</button>
+  </div>
+  
+  <div role="dialog" tabindex="-1" class="fade in modal" id='popup_approve'>
+    <div class="modal-dialog row send-mail-modal">
+      <div class="modal-content" role="document">
+        <div class="modal-body">
+          <div class="container-modal">
+            <div class="row">
+              <div class="col-sm-12 col-md-12 col-md-12">
+  
+                <button type="button" class="pull-right btn_close"
+                        id="btn_close_pop2">
+                  <span>x</span>
+                </button>
+                <div class="row">
+                  <div>
+                    <div class="col-sm-12 col-md-12 text-center"><span
+                            id="label_template"></span> {{ _('email will be sent.') }}
                     </div>
+                  </div>
                 </div>
+                <div class="row" id="apply_spinner">
+                  <div class="col-sm-12 col-md-12 scroll_y">
+                    <table class="table table-striped style-table-modal table-mt"
+                           id="table_data">
+                      <thead>
+                      <tr class="success">
+                        <th class="thWidth style-column">{{ _('No.') }}</th>
+                        <th class="thWidth style-column">{{ _('Activity') }}</th>
+                        <th class="thWidth style-column">{{ _('Item') }}</th>
+                        <th class="alignCenter">{{ _('User') }}</th>
+                      </tr>
+                      </thead>
+                      <tbody id="appendHTML"></tbody>
+                    </table>
+                  </div>
                 </div>
+  
+                <div class="modal-footer">
+                  <button type="button"
+                          class="btn-info text-white btn btn-default pull-left"
+                          id="btn_back">
+                    <span class="glyphicon glyphicon-chevron-left text-white"></span>&nbsp;{{ _('Back') }}
+                  </button>
+                  <button type="button"
+                          class="btn-primary text-white btn btn-default"
+                          id="btn_approve">
+                    <span class="glyphicon glyphicon-send"></span>&nbsp;{{ _('Send') }}
+                  </button>
+                </div>
+              </div>
             </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  
+    <div role="dialog" tabindex="-1" class="fade in modal" id='popup_success'>
+      <div class="modal-dialog row popup_notice">
+        <div class="modal-content" role="document">
+          <div class="modal-header">
+            <h4 class="modal-title">JGSS</h4>
+          </div>
+          <div class="modal-body">
+            <div class="container-modal">
+              <div class="row">
+                <div class="col-sm-12 col-md-12">{{ _('Email is sent successfully.') }}</div>
+              </div>
             </div>
-        `;
-        document.body.insertAdjacentHTML("beforeend", dialogHtml);
+          </div>
+          <div class="modal-footer">
+            <div class="col text-center">
+              <button type="button" class="btn-default btn-secondary btn btn_ok">
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 17131 - begin -->
+    <div role="dialog" tabindex="-1" class="fade in modal" id='popup_fail'>
+      <div class="modal-dialog row popup_notice">
+        <div class="modal-content" role="document">
+          <div class="modal-header">
+            <h4 class="modal-title">JGSS</h4>
+          </div>
+          <div class="modal-body">
+            <div class="container-modal">
+              <div class="row">
+                <div class="col-sm-12 col-md-12">{{ _('Please contact your system administrator.') }}</div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <div class="col text-center">
+              <button type="button" class="btn-default btn-secondary btn btn_ok">
+                OK
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div role="dialog" tabindex="-1" class="fade in modal" id='activitylogs_clear_modal'>
+    <div class="modal-dialog row popup_notice">
+      <div class="modal-content" role="document">
+        <div class="modal-header">
+          <h4 class="modal-title">{{_('Clear Confirm')}}</h4>
+        </div>
+        <div class="modal-body">
+          <div class="container-modal">
+            <div class="row">
+              <div class="col-sm-12 col-md-12">{{ _('Deleted activities cannot be restored.') }}</div>
+              <div class="col-sm-12 col-md-12">{{ _('Are you sure you want to delete filtered activities?') }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="col text-center">
+            <button type="submit" class="btn btn-danger" id="confirm_clear_activitylogs">
+              OK
+            </button>
+            <button type="submit" class="btn btn-primary" id="cancel_clear_activitylogs">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div role="dialog" tabindex="-1" class="fade in modal" id='activitylog_clear_modal'>
+    <div class="modal-dialog row popup_notice">
+      <div class="modal-content" role="document">
+        <div class="modal-header">
+          <h4 class="modal-title">{{_('Clear Confirm')}}</h4>
+        </div>
+        <div class="modal-body">
+          <div class="container-modal">
+            <div class="row">
+              <div class="col-sm-12 col-md-12">{{ _('Deleted activity cannot be restored.') }}</div>
+              <div class="col-sm-12 col-md-12" id="del_activity_id"></div>
+              <div class="col-sm-12 col-md-12">{{ _('Are you sure you want to delete the filtered activity?') }}</div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <div class="col text-center">
+            <button type="submit" class="btn btn-danger" id="confirm_clear_activitylog">
+              OK
+            </button>
+            <button type="submit" class="btn btn-primary" id="cancel_clear_activitylog">
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+      document.addEventListener("DOMContentLoaded", function () {
+      // ダイアログの生成
+      const dialogHtml = `
+          <div id="export_dialog" class="modal fade" tabindex="-1" role="dialog">
+          <div class="modal-dialog" role="document">
+              <div class="modal-content">
+              <div class="modal-header" style="display: flex; justify-content: center; align-items: center;">
+                  <h5 class="modal-title" style="text-align: center; flex: 1;">以下のオプションを選択してください：</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close" style="position: absolute; right: 10px;">
+                  <span aria-hidden="true">&times;</span>
+                  </button>
+              </div>
+              <div class="modal-body" style="display: flex; flex-direction: column; align-items: center; text-align: center;">
+                  <p style="margin-bottom: 20px;"></p>
+                  <div class="button-container" style="display: flex; justify-content: center; gap: 10px;">
+                  <button id="export_selected" class="btn btn-primary">選択アイテム出力</button>
+                  <button id="export_all" class="btn btn-danger">全て出力</button>
+                  <button id="export_cancel" class="btn btn-secondary" data-dismiss="modal">キャンセル</button>
+                  </div>
+              </div>
+              </div>
+          </div>
+          </div>
+      `;
+      document.body.insertAdjacentHTML("beforeend", dialogHtml);
 
-        // ボタンイベントの設定
-        document.getElementById("export_button").addEventListener("click", function () {
-            $("#export_dialog").modal("show");
-        });
+      // ボタンイベントの設定
+      document.getElementById("export_button").addEventListener("click", function () {
+          $("#export_dialog").modal("show");
+      });
 
-        document.getElementById("export_selected").addEventListener("click", function () {
-            alert("選択アイテムを出力します");
-            $("#export_dialog").modal("hide");
-        });
+      document.getElementById("export_selected").addEventListener("click", function () {
+          alert("アイテムが登録されました。");
+          $("#export_dialog").modal("hide");
+      });
 
-        document.getElementById("export_all").addEventListener("click", function () {
-            alert("全てのアイテムを出力します");
-            $("#export_dialog").modal("hide");
-        });
-        });
-      </script>
-    {%- endblock page_body_main %}
+      document.getElementById("export_all").addEventListener("click", function () {
+          alert("全てのアイテムを出力します");
+          $("#export_dialog").modal("hide");
+      });
+      });
+    </script>
+  {%- endblock page_body_main %}
 
-    
-    
+  
+  

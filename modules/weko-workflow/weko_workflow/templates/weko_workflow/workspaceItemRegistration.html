@@ -1,0 +1,301 @@
+{#
+  # This file is part of WEKO3.
+  # Copyright (C) 2017 National Institute of Informatics.
+  #
+  # WEKO3 is free software; you can redistribute it
+  # and/or modify it under the terms of the GNU General Public License as
+  # published by the Free Software Foundation; either version 2 of the
+  # License, or (at your option) any later version.
+  #
+  # WEKO3 is distributed in the hope that it will be
+  # useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+  # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+  # General Public License for more details.
+  #
+  # You should have received a copy of the GNU General Public License
+  # along with WEKO3; if not, write to the
+  # Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+  # MA 02111-1307, USA.
+  #}
+ 
+ {%- extends config.WEKO_WORKFLOW_BASE_TEMPLATE %}
+ {%- from "invenio_communities/macros.html" import community_header %}
+ 
+ {%- block css %}
+   {{ super() }}
+   {% assets "weko_records_ui_css" %}<link href="{{ ASSET_URL }}" rel="stylesheet">{% endassets %}
+   {% assets "workflow_css" %}<link href="{{ ASSET_URL }}" rel="stylesheet">{% endassets %}
+   {% assets "weko_theme_css_buttons" %}<link href="{{ ASSET_URL }}" rel="stylesheet">{% endassets %}
+   {% assets "weko_records_ui_bootstrap_popover_css" %}<link href="{{ ASSET_URL }}" rel="stylesheet">{% endassets %}
+ {%- endblock css %}
+ 
+ {%- block javascript %}
+   {{ super() }}
+   {% include config.THEME_JAVASCRIPT_TEMPLATE %}
+   {% assets "weko_theme_js" %}<script src="{{ ASSET_URL }}"></script>{% endassets %}
+ 
+   {%- if 'item_link' == cur_step %}
+     {% assets "weko_theme_js_treeview" %}<script src="{{ ASSET_URL }}"></script>{% endassets %}
+     {% assets "invenio_search_ui_search_js" %}<script src="{{ ASSET_URL }}"></script>{% endassets %}
+     {% assets "weko_search_ui_js" %}<script src="{{ ASSET_URL }}"></script>{% endassets %}
+     {% assets "workflow_item_link_js" %}<script src="{{ ASSET_URL }}"></script>{% endassets %}
+   {%- elif 'identifier_grant' == cur_step %}
+     {% assets "workflow_identifier_grant_js" %}<script src="{{ ASSET_URL }}"></script>{% endassets %}
+   {%- else %}
+     {% assets "workflow_js" %}<script src="{{ ASSET_URL }}"></script>{% endassets %}
+     {%- if 'oa_policy' == cur_step %}
+       {% assets "workflow_oa_policy_js" %}<script src="{{ ASSET_URL }}"></script>{% endassets %}
+     {%- endif %}
+   {%- endif %}
+   {% assets "workflow_quit_confirmation_js" %}<script src="{{ ASSET_URL }}"></script>{% endassets %}
+   {% assets "workflow_lock_activity_js" %}<script src="{{ ASSET_URL }}"></script>{% endassets %}
+   {% assets "weko_theme_js_widget" %}<script src="{{ ASSET_URL }}"></script>{% endassets %}
+   {% assets "weko_records_ui_preview_carousel_js" %}<script src="{{ ASSET_URL }}"></script>{% endassets %}
+   {% assets "weko_records_ui_bootstrap_popover_js" %}<script src="{{ ASSET_URL }}"></script>{% endassets %}
+ {%- endblock javascript %}
+ 
+ {%- block page_body_tabs %}
+   {% from "weko_theme/macros/tabs_selector.html" import tabs_selector with context %}
+   {{ tabs_selector('workspace', community_id) }}
+ {%- endblock page_body_tabs %}
+ 
+ {%- block page_header %}
+   {%-if not community %}
+   {{ super() }}
+   {%- endif%}
+ {%- endblock page_header %}
+ 
+ {%- block page_footer %}
+   {%-if not community%}
+   {{ super() }}
+   {%- endif%}
+ {%- endblock page_footer %}
+ 
+ {% set guest_email = None %}
+ {% if activity and activity.extra_info and 'guest_mail' in activity.extra_info %}
+   {% set guest_email = activity.extra_info.guest_mail %}
+ {% endif %}
+ 
+ {%- block page_body_main %}
+ 
+ <!--Approval confirm modal-->
+ {% from "weko_theme/macros/modal_page.html" import approval_modal %}
+ {{approval_modal('confirm_modal', 'confirm_approval_btn', _('OK'),_('JGSS'),_('Use of JGSS data is considered as Continue. If you approve, this usage report will end. It is not able to restore an usage report that has ended. Do you want to continue?'))}}
+ <input type="hidden" id="warning_message" name="warning_message"
+             value="{{_('Use of JGSS data is considered as Continue. If you approve, this usage report will end. It is not able to restore an usage report that has ended. Do you want to continue?')}}">
+ <input type="hidden" id="a" name="a" value="{{_('Stop_Continue')}}">
+ {%-if position_list %}
+ <select style="display:None" autofocus="" class="form-control"
+         id="position_list" name="position_list">
+   {% for item in position_list %}
+   <option value="{{ item[0] }}">{{ item[1] }}</option>
+   {% endfor %}
+ </select>
+ {%- endif %}
+ {%-if institute_position_list %}
+ <select style="display:None" autofocus="" class="form-control"
+         id="institute_position_list" name="institute_position_list">
+   {% for item in institute_position_list %}
+   <option value="{{ item[0] }}">{{ item[1] }}</option>
+   {% endfor %}
+ </select>
+ {%- endif %}
+ 
+ <div role="navigation">
+  <ul class="nav nav-tabs">
+    <li role="presentation" {%-if tab == 'todo' %} class="active" {%- endif%}>
+      <a href="javascript:void(0);" class="activity_tab" data-tab="todo">アイテム一覧</a></li>
+    <!-- # TODO アイテム登録画面を作成する-->
+    <!-- <li role="presentation" {%-if tab == 'wait' %} class="active" {%- endif%}>
+      <a href="javascript:void(0);" class="activity_tab" data-tab="wait">アイテム登録</a></li> -->
+    <li role="presentation" class="active" >
+      <a href="javascript:void(0);" class="" >アイテム登録</a></li>
+  </ul>
+</div>
+ <div class="row">
+   {%-if community%}
+     <div id="community_id" class="hide">{{community.id}}</div>
+   {%-else %}
+     <div id="community_id" class="hide"></div>
+   {%-endif %}
+   <div class="col-sm-12">
+     <div id="workspace" class="panel-group">
+       <div class="panel panel-default">
+         <div class="panel-body">
+         <div class="container-fluid">
+           <div class="row col-sm-9">
+             <div class="col-sm-3">
+               <div class="form-horizontal" style="display: inline-block;">
+                 <div class="form-group">
+                   <div class="col-xs-6 col-md-4 col-lg-4 control-lable">
+                     <label>{{_('Flow')}}</label>
+                   </div>
+                   <div class="col-xs-12 col-md-8 col-lg-8">
+                     <p>Registration Flow</p>
+                   </div>
+                 </div>
+                 <div class="form-group">
+                   <div class="col-xs-6 col-md-4 col-lg-4 control-lable">
+                     <label>{{_('Activity')}}</label>
+                   </div>
+                   <div class="col-xs-12 col-md-8 col-lg-8">
+                     <p id="activity_id">A-20241212-00006</p>
+                     <input id="activity_id_for_lock" type="hidden" value="" />
+                     <input id="cur_step_for_lock" type="hidden" value="" />
+                   </div>
+                 </div>
+                 <div class="form-group">
+                   <div class="col-xs-6 col-md-4 col-lg-4 control-lable">
+                     <label>{{_('Status')}}</label>
+                   </div>
+                   <div class="col-xs-12 col-md-8 col-lg-8">
+                     <p></p>
+                   </div>
+                 </div>
+               </div>
+             </div>
+             <div class="col-sm-3">
+               <div class="form-horizontal" style="display: inline-block;">
+                 <div class="form-group">
+                  <div class="col-xs-6 col-md-4 col-lg-4 control-lable">
+                    <label>{{_('Created')}}</label>
+                  </div>
+                   <div class="col-xs-12 col-md-8 col-lg-8">
+                     <p>2024-12-12</p>
+                   </div>
+                 </div>
+                 <div class="form-group">
+                 <div class="col-xs-6 col-md-4 col-lg-4 control-lable">
+                   <label>{{_('Creater')}}</label>
+                 </div>
+                   <div class="col-xs-12 col-md-8 col-lg-8">
+                     <p>wekosoftware@nii.ac.jp</p>
+                   </div>
+                 </div>
+               </div>
+             </div>
+             <div class="col-sm-2"></div>
+             <div class="col-sm-3">
+               <div class="form-horizontal" style="display: inline-block;">
+                 <div class="form-group">
+                 <div class="col-xs-6 col-md-4 col-lg-4 control-lable">
+                   <label>{{_('Updated')}}</label>
+                 </div>
+                   <div class="col-xs-12 col-md-8 col-lg-8">
+                     <p>2024-12-12</p>
+                   </div>
+                 </div>
+                 <div class="form-group">
+                 <div class="col-xs-6 col-md-4 col-lg-4 control-lable">
+                   <label>{{_('Updater')}}</label>
+                 </div>
+                   <div class="col-xs-12 col-md-8 col-lg-8">
+                     <p>wekosoftware@nii.ac.jp</p>
+                   </div>
+                 </div>
+                 <div class="col-sm-1"></div>
+               </div>
+             </div>
+           </div></div>
+         </div>
+       </div>
+       <div class="panel panel-default">
+         <div class="panel-body">
+           <div class="row col-sm-9">
+             <div class="col-xs-1 col-md-1 col-lg-1">
+                 <lable>{{_('Item')}}</lable>
+             </div>
+             <div class="col-xs-11 col-md-11 col-lg-11">
+               {%- if is_enable_item_name_link -%}
+                 <a href="#" id="link_record_detail"></a>
+               {%- endif -%}
+             </div>
+           </div>
+         </div>
+       </div>
+
+         <div class="panel panel-default">
+             <!-- <div class="panel-body" id="activity_locked">
+               {% include 'weko_workflow/lock_activity.html' with context %}
+             </div> -->
+             <div class="panel-body" id="step_page">
+               <div class="hide" id="hide-actionId"></div>
+               <div class="hide" id="hide-actionstep_item_login_url">{{step_item_login_url}}</div>
+                {% include step_item_login_url %}
+                <!-- {% include 'weko_workflow/record_detail.html' %} -->
+                 <!-- <div class="form-group">
+                   <label class="sr-only" for="input-comment"></label>
+                   <div class="input-group">
+                     <div class="input-group-addon"></div>
+                     <textarea class="form-control" rows="5" id="input-comment" placeholder=""></textarea>
+                   </div>
+                 </div> -->
+             </div>
+         </div>
+     </div>
+   </div>
+ </div>
+ {%- endblock page_body_main %}
+ 
+ {%- block page_body %}
+ <div id="AutoCancelMsg" class="hide">{{_('The activity is forcibly canceled because the workflow settings have changed and the next step was not found.')}}</div>
+ <div ng-controller="AuthorModalCtrl" class="modal fade" tabindex="-1" role="dialog" id="cancelModal">
+   <div class="modal-dialog modelWidth modal-lg" role="document">
+     <div class="modal-content">
+       <div class="modal-header">
+         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+           <span aria-hidden="true">&times;</span>
+         </button>
+         <h4 class="modal-title">WEKO</h4>
+       </div>
+       <div class="modal-body" id="cancelModalBody">
+       </div>
+       <div class="modal-footer">
+         <button type="button" class="btn btn-primary" id="btnContinue">{{_('Continue')}}</button>
+       </div>
+     </div>
+   </div>
+ </div>
+   {%-if community %}
+     <div class="communities">
+     <div id="community-id" name="community-id" hidden>{{ community.id }}</div>
+     {{ community_header(community, subtitle='') }}
+       <div id="page_body" class="grid-stack hidden" {%- if render_widgets %}style="display: None;"{%- endif %}>
+         <div id="main_contents">
+   {%- endif%}
+   {{ super() }}
+ <div ng-controller="AuthorModalCtrl" class="modal fade" tabindex="-1" role="dialog" id="myModal">
+   <div class="modal-dialog modelWidth modal-lg" role="document">
+     <div class="modal-content">
+       <div class="modal-body">
+         {%- with preview_carousel_id='modal_preview_carousel' %}
+           {% include 'weko_workflow/record_detail.html' %}
+         {%- endwith %}
+       </div>
+       <div class="modal-footer">
+         <button type="button" class="btn btn-info close-button" id="btnModalClose" data-dismiss="modal">
+           <span class="glyphicon glyphicon-remove"></span>{{_('Close')}}
+         </button>
+       </div>
+     </div>
+   </div>
+ </div>
+ {%-if community %}
+   </div>
+   </div>
+   {%- from "weko_theme/macros/footer-community.html" import community_footer_widget %}
+   {{ community_footer_widget(render_widgets, community, link=False, subtitle='') }}
+ </div>
+ <div class="communities">
+ </div>
+ {%- endif %}
+ {%- endblock page_body %}
+ 
+ {% macro style_including(inStyle, step) -%}
+   {% if activity.activity_status_str != 'End' and cur_step == step.ActionEndpoint and step.ActionOrder == activity.action_order %}
+     {{ inStyle }}
+   {% elif activity.activity_status_str == 'End' and step.ActionName == 'End' %}
+     {{ inStyle }}
+   {% endif %}
+ {%- endmacro %}
+ 

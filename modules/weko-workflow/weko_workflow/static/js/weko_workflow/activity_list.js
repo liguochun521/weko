@@ -99,6 +99,10 @@ require([
     window.location.href = creatURL(createParamArray($(this).data('tab'), 'tab'));
   });
 
+  $(".item_tab").click(function () {
+    window.location.href = creatURL(createParamArray($(this).data('tab'), 'tab'));
+  });
+
   $('.filter_option').on('click', function () {
     addFilterRow($(this).text(), $(this).data('name'), '');
   });

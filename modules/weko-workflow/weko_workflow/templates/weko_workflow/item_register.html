@@ -1,0 +1,934 @@
+{#
+    # This file is part of WEKO3.
+    # (License info omitted for brevity)
+#}
+
+{%- extends config.WEKO_WORKFLOW_BASE_TEMPLATE %}
+{%- from "invenio_communities/macros.html" import community_header %}
+
+{%- block css %}
+{{ super() }}
+{% assets "workflow_datepicker_css" %}<link href="{{ ASSET_URL }}" rel="stylesheet">{% endassets %}
+{% assets "workflow_css" %}<link href="{{ ASSET_URL }}" rel="stylesheet">
+{% endassets %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='weko_workflow/style.css') }}">
+
+<style>
+  #content {
+    display: none;
+  }
+
+  .item-register-table {
+    border-collapse: collapse;
+    width: 100%;
+    /* max-width: 900px; */
+    table-layout: fixed;
+    /* margin: auto; */
+  }
+
+  .item-register-table th, .item-register-table td {
+    border: 1px solid #ccc;
+    vertical-align: top;
+    padding: 10px;
+    box-sizing: border-box;
+    vertical-align: middle;
+    /* width: 33.3%; */
+    /* width: 100%;   */
+    /* table-layout: fixed;  */
+  }
+
+  .item-register-table th {
+    /* text-align: left; */
+    font-size: 1.2em;
+    width: 100%;  
+  }
+
+  .item-register-table tr.height-fixed-row > td,
+  .item-register-table tr.height-fixed-row > th {
+    height: 15px;
+    /* vertical-align: middle; */
+    width: 100%;  
+    table-layout: fixed; 
+  }
+
+  .item-register-table tr.height-fixed-row > td > input,
+  .item-register-table tr.height-fixed-row > td > button {
+    display: inline-block; /*  */
+    vertical-align: middle;
+    margin-right: 10px;
+  }
+
+  /* DOI入力 */
+  #doiInput {
+    width: 100%;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    padding: 10px; 
+  }
+
+  /* 本文ファイル欄 */
+  #fileDropArea {
+    width: 100%;
+    text-align:center;
+    box-sizing:border-box;
+    height:25px; 
+    position:relative;
+    padding:5px;
+  }
+
+  #fileTextInput {
+    width:100%;
+    box-sizing:border-box;
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    text-align:center;
+  }
+
+  /* メタデータ欄 */
+  #metadataSection input[type=text] {
+    width: 100%;
+    box-sizing: border-box;
+    border: 2px solid #ccc;
+    padding: 10px; 
+  }
+
+  .register-button-container {
+    margin-top:40px; 
+    margin-bottom:10px; 
+    text-align:right; 
+    max-width:900px; 
+    width: 100%;        
+    max-width: none;        
+    margin-left: auto;     
+    margin-right: 0;  
+  }
+  /* .register-button-container {
+  margin-top: 20px;
+  margin-bottom: 20px;
+  text-align: right;   
+  width: 100%;        
+  max-width: none;        
+  margin-left: auto;     
+  margin-right: 0;  
+} */
+
+  /* 非活性時、グレー背景のスタイル */
+  #registerButton[disabled] {
+    background-color: #ccc;
+    color: #666;
+    border: none;
+  }
+  
+.inputButton{
+    background-color: #ccc;
+    color: #666;
+    border: none;
+  }
+
+th {
+  background-color:#dff0d8; 
+  color: #333;
+}
+
+.red-cross {
+    color: red;
+  }
+
+
+.radio {
+  display: flex; 
+}
+
+.radio-option {
+  display: flex; 
+  width: 25%;
+  flex-direction: column;  
+  align-items: center; 
+  margin-right: 20px;  
+}
+
+label {
+  display: inline-block;  
+  padding: 10px 20px;   
+  width: 90%;
+  /* height: 400px;    */
+  height: 60px;  
+  border: 2px solid #ccc; 
+  border-radius: 5px;     
+  text-align: center;     
+  cursor: pointer;       
+  transition: border-color 0.3s;  
+}
+
+label:hover {
+  border-color: #007bff;  
+}
+
+label input {
+  margin-bottom: 5px; 
+}
+
+.radio-option input {
+  margin-bottom: 5px; 
+}
+
+.bordered-text {
+  border: 2px solid #ccc; 
+  padding: 5px; 
+  width: 80%;           
+  margin: 1px;   
+  text-align: center;            
+  border-radius: 5px;        
+  display: inline-block;   
+}
+</style>
+
+{%- endblock css %}
+
+{%- block javascript %}
+<!-- {{ super() }} -->
+{% assets "weko_theme_js_widget" %}
+<script src="{{ ASSET_URL }}"></script>{% endassets %}
+<script src="{{ url_for('static', filename='js/weko_workflow/app_workspace.js') }}" type="text/babel"></script> 
+{%- endblock javascript %}
+
+
+<script>
+  // トグルボタン処理
+  const button = document.getElementById('toggleButton');
+  const content = document.getElementById('content');
+
+  if (button && content) {
+    button.addEventListener('click', function () {
+      if (content.classList.contains('expanded')) {
+        content.classList.remove('expanded');
+        content.style.display = 'none';
+      } else {
+        content.classList.add('expanded');
+        content.style.display = 'block';
+      }
+    });
+  }
+</script>
+
+
+
+
+{%- block page_body_tabs %}
+{% from "weko_theme/macros/tabs_selector.html" import tabs_selector with context %}
+{{ tabs_selector('workspace',community_id) }}
+{%- endblock page_body_tabs %}
+
+{%- block page_header %}
+{%-if not community %}
+{{ super() }}
+{%- endif %}
+{%- endblock page_header %}
+
+{%- block page_footer %}
+{%-if not community%}
+{{ super() }}
+{%- endif %}
+{%- endblock page_footer %}
+
+{% block page_body %}
+{%-if not community %}
+{{ super() }}
+{%- else %}
+<div class="communities">
+  <div id="community-id" name="community-id" hidden>{{ community.id }}</div>
+  {{ community_header(community, subtitle='') }}
+  <div id="page_body" class="grid-stack hidden" {%- if render_widgets %}style="display: None;" {%- endif %}>
+    <div id="main_contents">
+      {{ super() }}
+    </div>
+  </div>
+  {%- from "weko_theme/macros/footer-community.html" import community_footer_widget %}
+  {{ community_footer_widget(render_widgets, community, link=False, subtitle='') }}
+</div>
+<div class="communities"></div>
+{%- endif %}
+{% endblock page_body %}
+
+{%- block page_body_main %}
+<div role="navigation">
+  <ul class="nav nav-tabs">
+    <li role="presentation" {%-if tab == 'todo' %} class="active" {%- endif%}>
+      <a href="javascript:void(0);" class="activity_tab" data-tab="todo">アイテム一覧</a></li>
+
+    <li role="presentation" {%-if tab == 'wait' %} class="active" {%- endif%}>
+      <a href="{{ url_for('weko_workflow.itemregister') }}" class="activity_tab" data-tab="wait">アイテム登録</a>
+    </li>
+
+  </ul>
+  {%- if send_mail -%}
+    <button class="btn btn-default style-button pull-right" id="btn_send_mail">
+      <span class="glyphicon glyphicon-send"></span>&nbsp; {{ _('Send Mail') }}
+    </button>
+  {%- endif %}
+</div>
+<br>
+
+
+</div>
+
+<!-- レイアウト変更したアイテム登録画面 -->
+<table class="item-register-table">
+    <tr>
+        <th>DOI入力</th>
+    </tr>
+    <tr class="height-fixed-row">
+        <td>
+          <div style="display: flex;">
+            <input type="text" id="doiInput" placeholder="DOIを入力してください。">&nbsp;
+            <button  id="autofill_item_button" name="autofill_get_value" value="{{_('Get')}}" class="btn btn-primary">取得</button>
+          </div>
+        </td>
+      </tr>
+    <tr>
+        <td>
+          <div class="row row-12" id="radio_form_share">
+            <div class="radio">
+              <div class="radio-option">
+                <label style="text-align: center;">
+                  <input type="radio" role="presentation" name="checkedSharePermiss" id="input" class="input_contributor" value="this_user" onchange="handleSharePermission(this.value)"><br>CrossRef Meta</label>
+              </div>
+              <div class="radio-option">
+                  <label style="text-align: center;">
+                    <input type="radio" role="presentation" onchange="handleSharePermission(this.value)" name="checkedSharePermiss" id="input" value="other_user" class="other_user_rad"><br>JaLC Meta</label>
+              </div>
+              <div class="radio-option">
+                <label style="text-align: center;">
+                  <input type="radio" role="presentation" onchange="handleSharePermission(this.value)" name="checkedSharePermiss" id="input" value="other_user" class="other_user_rad"><br>CiNii Research</label>
+              </div>
+              <div class="radio-option">
+                  <label style="text-align: center;">
+                    <input type="radio" role="presentation" onchange="handleSharePermission(this.value)" name="checkedSharePermiss" id="input" value="other_user" class="other_user_rad"><br>DataCite</label>
+              </div>
+            </div>
+          </div>
+        </td>
+      
+      <!-- <tr>
+        <div class="panel-body panel-body2">    
+          <div class="row row-4" id="radio_form_share">
+            <div class="radio">
+              <label>
+                <input type="radio" role="presentation" name="checkedSharePermiss" id="input" class="input_contributor" value="this_user" checked="checked" onchange="handleSharePermission(this.value)">CrossRef Meta</label>
+                <br><label><input type="radio" role="presentation" onchange="handleSharePermission(this.value)" name="checkedSharePermiss" id="input" value="other_user" class="other_user_rad">JaLC Meta</label>
+                <br><label><input type="radio" role="presentation" onchange="handleSharePermission(this.value)" name="checkedSharePermiss" id="input" value="other_user" class="other_user_rad">CiNii Research</label>
+                <br><label><input type="radio" role="presentation" onchange="handleSharePermission(this.value)" name="checkedSharePermiss" id="input" value="other_user" class="other_user_rad">DataCite</label>
+                <br><label><input type="radio" role="presentation" onchange="handleSharePermission(this.value)" name="checkedSharePermiss" id="input" value="other_user" class="other_user_rad">Researchmap</label>
+            </div>
+          </div>
+        </div>
+      </tr> -->
+        <!-- <td>
+          <div ng-controller="WekoRecordsCtrl" style="display: flex; align-items: center;">
+            <select name="idType" id="autofill_id_type" value={this.state.idType.value}
+            onChange={this.handleChange} className="form-control">
+            <option value="CrossRef">CrossRef</option>
+            </select>
+            &nbsp;&nbsp;
+            <input type="text" id="doiInput" placeholder="DOIまだ業績IDを入力してください" />&nbsp;
+            <button class="btn btn-success" ng-click="getItemMetadata()" 
+                  id="autofill_item_button" name="autofill_get_value">取得</button>
+
+                      </div>
+        </td> -->
+
+    </tr>
+
+  <tr class="height-fixed-row">
+      <th >メタデータ</th>
+  </tr>
+  <tr class="height-fixed-row">
+
+
+      <td>
+    
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="row" style="display: flex; align-items: center;">
+              <div class="col-sm-2">
+                  <label>タイトル</label>
+              </div>
+                <div class="col-sm-12" style="display: flex; align-items: center;" >
+                  <input type="text" id="titleInput" placeholder="テスト03_001" disabled="disabled">
+                </div>
+                <div class="help-block" sf-message="form.description"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="row" style="display: flex; align-items: center;">
+              <div class="col-sm-2">
+                  <label>公開日</label>
+              </div>
+              <div class="col-sm-12"><select ng-model="デフォルトアイテムタイプ（フル）"
+                ng-model-options="form.ngModelOptions"
+                ng-disabled="form.readonly"
+                sf-changed="form"
+                schema-validate="form"
+                ng-options="item.value as item.name group by item.group for item in form.titleMap"
+                name="デフォルトアイテムタイプ（フル）">
+                <option value="デフォルトアイテムタイプ（フル）">2024-12-20</option>
+                </select>
+                <div class="help-block" sf-message="form.description"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="row" style="display: flex; align-items: center;">
+              <div class="col-sm-2">
+                  <label>資源タイプ</label>
+              </div>
+              <div class="col-sm-12"><select ng-model="デフォルトアイテムタイプ（フル）"
+                ng-model-options="form.ngModelOptions"
+                ng-disabled="form.readonly"
+                sf-changed="form"
+                schema-validate="form"
+                ng-options="item.value as item.name group by item.group for item in form.titleMap"
+                name="デフォルトアイテムタイプ（フル）">
+                <option value="デフォルトアイテムタイプ（フル）" >conference paper</option>
+                </select>
+                <div class="help-block" sf-message="form.description"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="row" style="display: flex; align-items: center;">
+              <div class="col-sm-2">
+                  <label>会議名</label>
+              </div>
+              <div class="col-sm-12" style="display: flex; align-items: center;">
+                <input type="text" id="doiInput" placeholder="" disabled="disabled">
+              </div>
+                <div class="help-block" sf-message="form.description"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="row" style="display: flex; align-items: center;">
+              <div class="col-sm-2">
+                  <label>資金名</label>
+              </div>
+              <div class="col-sm-12" style="display: flex; align-items: center;">
+                <input type="text" id="doiInput" placeholder="" disabled="disabled">
+              </div>
+                <div class="help-block" sf-message="form.description"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="row" style="display: flex; align-items: center;">
+              <div class="col-sm-2">
+                  <label>DOI</label>
+              </div>
+              <div class="col-sm-12" style="display: flex; align-items: center;">
+                <input type="text" id="doiInput" placeholder="10.5109/16119" disabled="disabled">
+              </div>
+                <div class="help-block" sf-message="form.description"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="row" style="display: flex; align-items: center;">
+              <div class="col-sm-2">
+                  <label>著者名</label>
+              </div>
+              <div class="col-sm-12" style="display: flex; align-items: center;">
+                <input type="text" id="doiInput" placeholder="田中 次郎" disabled="disabled">
+              </div>
+                <div class="help-block" sf-message="form.description"></div>
+              </div>
+
+              <div class="row" style="display: flex; align-items: center;">
+                <div class="col-sm-2">
+                    <label>著者名</label>
+                </div>
+                <div class="col-sm-12" style="display: flex; align-items: center;">
+                  <input type="text" id="doiInput" placeholder="田中 太郎" disabled="disabled">
+                </div>
+                  <div class="help-block" sf-message="form.description"></div>
+                </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="row" style="display: flex; align-items: center;">
+              <div class="col-sm-2">
+                  <label>ジャーナル名</label>
+              </div>
+              <div class="col-sm-12" style="display: flex; align-items: center;">
+                <input type="text" id="doiInput" placeholder="雑誌" disabled="disabled">
+              </div>
+                <div class="help-block" sf-message="form.description"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="row" style="display: flex; align-items: center;">
+              <div class="col-sm-2">
+                  <label>論文の版</label>
+              </div>
+              <div class="col-sm-12" style="display: flex; align-items: center;">
+                <input type="text" id="doiInput" placeholder="Ver.1" disabled="disabled">
+              </div>
+                <div class="help-block" sf-message="form.description"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="row" style="display: flex; align-items: center;">
+              <div class="col-sm-2">
+                  <label>アクセス権</label>
+              </div>
+              <div class="col-sm-12" style="display: flex; align-items: center;">
+                <input type="text" id="doiInput" placeholder="open access" disabled="disabled">
+              </div>
+                <div class="help-block" sf-message="form.description"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="row" style="display: flex; align-items: center;">
+              <div class="col-sm-2">
+                  <label>関連識別子</label>
+              </div>
+              <div class="col-sm-12" style="display: flex; align-items: center;">
+                <input type="text" id="doiInput" placeholder="10.5109/16119" disabled="disabled">&nbsp;
+              </div>
+                <div class="help-block" sf-message="form.description"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        
+
+
+          <div id="metadataSection" style="display:none;">
+              <label for="titleInput">Title*</label><br>
+              <input type="text" id="titleInput">
+
+              <label class="control-label col-sm-3 " ng-show="showTitle()" ng-class="{'field-required': form.required}">
+                PubDate
+              </label>
+                <div class="col-sm-9"><select ng-model="$$value$$"
+                                              ng-model-options="form.ngModelOptions"
+                                              ng-disabled="form.readonly"
+                                              sf-changed="form"
+                                              schema-validate="form"
+                                              ng-options="item.value as item.name group by item.group for item in form.titleMap"
+                                              name="PubDate">
+                    <option value=""></option>
+                </select>
+                    <div class="help-block" sf-message="form.description"></div>
+                </div>
+
+              <div class="panel panel-default">
+
+            </div>
+          </div>
+      </td>
+
+  </tr>
+
+  <tr class="height-fixed-row">
+    <th >本文ファイル</th>
+</tr>
+<tr class="height-fixed-row">
+
+    <td>
+      <div style="display: flex; align-items: center;">
+        <div class="col-sm-2">
+          <div class="bordered-text">ファイル名</div>
+        </div>
+        <input type="text" id="fileInput" placeholder="テスト.png" >&nbsp;
+        <span aria-hidden="true" style="font-size: 24px;">×</span>
+      </div>
+      <div style="display: flex; align-items: center;">
+        <div class="col-sm-2">
+          <div class="bordered-text">ファイル名</div>
+        </div>
+        <input type="text" id="fileInput" placeholder="テスト.pdf" >&nbsp;
+        <span aria-hidden="true" style="font-size: 24px;">×</span>
+      </div>
+
+      <!-- <div ng-cloak="" ng-hide="recordsVM.invenioRecordsLoading"> -->
+      <!-- <div>
+        <div ng-controller="WekoRecordsCtrl">
+          <div id="file_upload" class="row row-4">
+            <div class="col-sm-12">
+              <invenio-files-upload-zone
+                template="{{ url_for('static', filename='templates/weko_workflow/upload.html') }}">
+                <p>Columns: {{ template }}</p>
+              </invenio-files-upload-zone>
+              <invenio-files-list
+                template="{{ url_for('static', filename='templates/weko_workflow/upload_file_list.html') }}"
+              ></invenio-files-list>
+            </div>
+          </div>
+        </div>
+      </div> -->
+      <div id="fileDropArea">
+        <!-- <input type="text" id="fileTextInput" placeholder="ドラッグ＆ドロップまたは入力"> -->
+        <!-- <div ng-controller='UploadController' ng-cloak="" ng-hide="recordsVM.invenioRecordsLoading"> -->
+        <div>
+          <div class="row row-4">
+            <div class="col-sm-12">
+              <div class="panel panel-default">
+                <div class="panel-body panel-body2">
+                  <div class="row row-4">
+                    <div class="col-sm-12" id="app">
+                      <div id="file_upload_button" class="well" ngf-drag-over-class="'dragover'" ngf-drop="" ngf-change="hookAddFiles($files)"
+                        ngf-max-size="20GB" ngf-multiple="true">
+                        <center>
+                          Drop files or folders here
+                        </center>
+                      </div>
+                      <p class="text-center legend"><strong>— {{_('OR')}} —</strong></p>
+                      <p class="text-center">
+                        <button id="file_upload_button" class="btn btn-primary" ngf-max-size="20GB" ngf-multiple="true" ngf-select=""
+                        ngf-change="hookAddFiles($files)">
+                        Click to select
+                        </button>
+                      </p>
+                      <!-- <form name="uploadThumbnailForm" class="collapse"
+                        sf-schema="schema"
+                        sf-form="form"
+                        sf-model="model">
+                      </form> -->
+                       <!-- <hr /> -->
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+  </td>
+</tr>
+</table>
+
+<!-- <div class="panel panel-default">
+  <div class="panel-body">
+    <div class="row" style="display: flex; align-items: center;">
+      <div class="col-sm-2">
+          <label>{{_('ワークフロー')}}</label>
+      </div>
+      <div class="col-sm-12"><select ng-model="デフォルトアイテムタイプ（フル）"
+        ng-model-options="form.ngModelOptions"
+        ng-disabled="form.readonly"
+        sf-changed="form"
+        schema-validate="form"
+        ng-options="item.value as item.name group by item.group for item in form.titleMap"
+        name="デフォルトアイテムタイプ（フル）">
+        <option value="デフォルトアイテムタイプ（フル）">デフォルトアイテムタイプ（フル）</option>
+        </select>
+        <div class="help-block" sf-message="form.description"></div>
+      </div>
+    </div>
+  </div>
+</div> -->
+<div class="panel panel-default">
+  <div class="panel-body">
+    <div class="row" style="display: flex; align-items: center;">
+      <div class="col-sm-2">
+        <label>{{_('インデックスリスト')}}</label>
+      </div>
+    
+      <div class="col-sm-12"><select ng-model="デフォルトアイテムタイプ（フル）"
+        ng-model-options=""
+        ng-disabled="form.readonly"
+        sf-changed="form"
+        schema-validate="form"
+        ng-options="デフォルトアイテムタイプ（フル）"
+        name="インデックス">
+        <option value="デフォルトアイテムタイプ（フル）">サンプルインデックス</option>
+        </select>
+        <div style="display: flex; align-items: center;">
+          <input type="text" id="indexInput" placeholder="サンプルインデックス" disabled="disabled">&nbsp;
+          <span aria-hidden="true" style="font-size: 24px;">×</span>
+        </div>
+        <div style="display: flex; align-items: center;">
+          <input type="text" id="indexInput" placeholder="サンプルインデックス1" disabled="disabled">&nbsp;
+          <span aria-hidden="true" style="font-size: 24px;">×</span>
+          <!-- <span aria-hidden="true" class="red-cross" style="color: red; font-size: 24px;">×</span> -->
+        </div>
+        <div class="help-block" sf-message="form.description"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="register-button-container" style="align-items: center; display: flex; justify-content: center;">
+  <!-- <button id="registerButton" class="btn btn-primary"disabled class="btn" style="padding:5px 20px;">登録</button> -->
+  <button id="registerButton" class="btn btn-primary"  style="padding:5px 20px;">登録</button>
+</div>
+
+<!-- <script>
+    document.getElementById("registerButton").addEventListener("click", function () {
+        $("#export_dialog").modal("show");
+    });
+</script> -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const doiInput1 = document.getElementById('doiInput');
+    const metadataSection = document.getElementById('metadataSection');
+    const titleInput = document.getElementById('titleInput');
+    const registerButton = document.getElementById('registerButton');
+    const fileDropArea = document.getElementById('fileDropArea');
+    const fileTextInput = document.getElementById('fileTextInput');
+
+    registerButton.addEventListener('click', function() {
+        alert('登録できました');
+    });
+
+    function updateRegisterButtonState() {
+        if (doiInput.value.trim() !== '' && titleInput.value.trim() !== '') {
+            registerButton.disabled = false;
+            registerButton.classList.add('btn-primary');
+        } else {
+            registerButton.disabled = true;
+            registerButton.classList.remove('btn-primary');
+        }
+    }
+
+    // DOI入力時の処理
+    // doiInput.addEventListener('input', function() {
+    //     if (doiInput.value.trim() !== '') {
+    //         // metadataSection.style.display = '';
+    //         console.log(99999999)
+    //         alert("!!!!!")
+    //         doiInput.disabled = true;
+    //         doiInput.classList.add('btn-primary');
+    //         titleInput.value = 'サンプルタイトル';
+    //         fetch('/weko-items-autofill/weko_items_autofill/views.get_auto_fill_record_data', {
+    //         method: 'POST', 
+    //         headers: {
+    //             'Content-Type': 'application/json',
+    //         },
+    //         body: JSON.stringify({ doi: doiValue }) 
+    //     })
+    //     .then(response => response.json())
+    //     .then(data => {
+    //         console.log('获取的数据：', data);
+    //         metadataSection.style.display = ''; 
+    //     })
+    //     .catch(error => {
+    //         console.error('发生错误：', error);
+    //         alert("获取数据失败！");
+    //     });
+    //     } else {
+    //       console.log(99999999)
+    //       alert("Please select the ID.")
+    //         metadataSection.style.display = 'none';
+    //         titleInput.value = '';
+    //     }
+        
+    // });
+
+    const doiInput = document.getElementById('doiInput');
+    const autofillButton = document.getElementById('autofill_item_button');
+    
+
+// 
+autofillButton.addEventListener('click', function() {
+    const doiValue = doiInput.value.trim();  // 
+
+    if (doiValue !== '') {
+        // CrossRef
+        const param = {
+            // doi: doiValue  // 
+            api_type: "CrossRef",
+            search_data: $.trim(doiValue),
+            item_type_id: "15"
+        };
+
+        let request = {
+            url: '/api/autofill/get_auto_fill_record_data', // 
+            headers: {
+                'Content-Type': 'application/json'  // 
+            },
+            method: "POST",  // 
+            body: JSON.stringify(param),  // 
+        };
+
+        
+        fetch(request.url, request)
+            .then(response => response.json()) 
+            .then(response => {
+                if (response) {
+                    const titleInput = document.getElementById('titleInput');
+                    alert(222222222);
+                    alert(JSON.stringify(response['result'][0]));
+                    // titleInput.value = response['result'][0]["item_1617186331708"][0]["subitem_title"];
+                    titleInput.value = response['result'][0]["item_1617186331708"][0]["subitem_title_language"];
+                    alert(JSON.stringify(titleInput.value));
+
+                    // let keys = Object.keys(response['result']);
+                    // keys.forEach(function () {
+                    //   let data = response['result'][keys];
+                    //   titleInput.value = data
+
+                    //   });
+                    //   alert(11111111111);
+                    //   alert(titleInput.value);
+                } else {
+                    alert("data not found");
+                }
+            })
+            .catch(error => {
+                // 
+                console.error('failure：', error);
+                alert("failure");
+            });
+
+        // CiNii
+        const param1 = {
+            // doi: doiValue  // 
+            api_type: "CiNii",
+            search_data: $.trim(doiValue),
+            item_type_id: "15"
+        };
+
+        let request1 = {
+            url: '/api/autofill/get_auto_fill_record_data', // 
+            headers: {
+                'Content-Type': 'application/json'  // 
+            },
+            method: "POST",  // 
+            body: JSON.stringify(param1),  // 
+        };
+
+        // 
+        fetch(request1.url, request1)
+            .then(response => response.json()) 
+            .then(response => {
+                if (response) {
+                    const titleInput = document.getElementById('titleInput');
+                    alert(33333333333);
+                    alert(JSON.stringify(response['result'][0]));
+                    // titleInput.value = response['result'][0]["item_1617186331708"][0]["subitem_title"];
+                    titleInput.value = response['result'][0]["item_1617186331708"][0]["subitem_title_language"];
+                    alert(JSON.stringify(titleInput.value));
+
+                    // let keys = Object.keys(response['result']);
+                    // keys.forEach(function () {
+                    //   let data = response['result'][keys];
+                    //   titleInput.value = data
+
+                    //   });
+                    //   alert(11111111111);
+                    //   alert(titleInput.value);
+                } else {
+                    alert("data not found");
+                }
+            })
+            .catch(error => {
+                // 
+                console.error('failure：', error);
+                alert("failure");
+            });
+    } else {
+        // 
+        alert("DOI入力！");
+    }
+});
+
+    // titleInput.addEventListener('input', updateRegisterButtonState);
+    // fileTextInput.addEventListener('input', function() {
+    //     // 必要ならここでボタン状態更新可能
+    // });
+
+    // ファイルドラッグ＆ドロップ
+    // fileDropArea.addEventListener('dragover', function(e) {
+    //     e.preventDefault();
+    // });
+    // fileDropArea.addEventListener('drop', function(e) {
+    //     e.preventDefault();
+    //     if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+    //         const file = e.dataTransfer.files[0];
+    //         fileTextInput.value = file.name;
+    //     }
+    // });
+
+    registerButton.addEventListener('click', function() {
+        alert('登録できました');
+    });
+});
+</script>
+
+<!-- 出力用モーダルなど -->
+<script>
+  const fileUploadButton = document.getElementById('file_upload_button');
+//   angular.module('app').controller('WekoRecordsCtrl', function($scope) {
+//     // 
+//     $scope.template = 'templates/weko_items_ui/upload_file_list.html';
+// });
+fileUploadButton.hookAddFiles = function (files) {
+        if (files !== null) {
+          let duplicateFiles = [];
+          files.forEach(function (file) {
+            let duplicateFile = [];
+            if ($rootScope.filesVM.files.length > 0) {
+              duplicateFile = $rootScope.filesVM.files.filter(function (f) {
+                return !f.is_thumbnail && f.key === file.name;
+              });
+            }
+            if (duplicateFile.length === 0) {
+              $rootScope.filesVM.addFiles([file]);
+            } else {
+              duplicateFiles.push(file.name);
+            }
+          });
+          this.resetFilesPosition();
+
+          // Generate error message and show modal
+          if (duplicateFiles.length > 0) {
+            let message = $("#duplicate_files_error").val() + '<br/><br/>';
+            message += duplicateFiles.join(', ');
+            $("#inputModal").html(message);
+            $("#allModal").modal("show");
+            return;
+          }
+        }
+      }
+</script>
+
+{%- endblock page_body_main %}

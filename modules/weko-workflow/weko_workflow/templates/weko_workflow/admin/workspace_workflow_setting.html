@@ -1,0 +1,111 @@
+{#
+# This file is part of WEKO3.
+# Copyright (C) 2017 National Institute of Informatics.
+#
+# WEKO3 is free software; you can redistribute it
+# and/or modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of the
+# License, or (at your option) any later version.
+#
+# WEKO3 is distributed in the hope that it will be
+# useful, but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+# General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with WEKO3; if not, write to the
+# Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+# MA 02111-1307, USA.
+#}
+
+{%- extends admin_base_template %}
+
+{% block css %}
+  {{ super() }}
+  {% assets "weko_theme_css_buttons" %}<link href="{{ ASSET_URL }}" rel="stylesheet">{% endassets %}
+{% endblock %}
+
+{%- block body %}
+<div class="row">
+  <div class="col-sm-offset-1 col-sm-11">
+    <a class="btn btn-success pull-right" id="btn_submit" href="{{url_for('workflowsetting.workflow_detail', workflow_id=0)}}">
+      <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>&nbsp
+            {{_('Create WorkFlow')}}
+    </a><br/><br/><br/>
+    <div class="table-responsive">
+      <table class="table table-striped table-bordered">
+        <thead>
+          <tr>
+            <th>{{_('No.')}}</th>
+            <th>{{_('WorkFlow')}}</th>
+            <th>{{_('Item Type')}}</th>
+            <th>{{_('Flow')}}</th>
+            <th>{{_('Restricted Access Flag')}}</th>
+            <th>{{_('GakuNinRDM Flag')}}</th>
+            <th>{{_('Registration Destination Index')}}</th>
+            <th>{{_('Strage Location')}}</th>
+            <th>{{ display_label }}</th>
+            <th>{{_('Hide')}}</th>
+            <th class="hide">{{_('Next Flow')}}</th>
+            <th>{{_('Status')}}</th>
+            <th>{{_('Updated')}}</th>
+          </tr>
+        </thead>
+        <tbody>
+        {%- for workflow in workflows %}
+          {% autoescape false %}
+            <tr>
+              <th scope="row">{{loop.index}}</th>
+              <td><a href="{{url_for('workflowsetting.workflow_detail', workflow_id=workflow.flows_id)}}">{{workflow.flows_name}}</a></td>
+              <td>{{_(workflow.itemtype.item_type_name.name)}}</td>
+              <td>{{_(workflow.flow_define.flow_name)}}</td>
+              <td>
+                {%- if workflow.open_restricted %}
+                  {{_('Enable') }}
+                {%- else %}
+                  {{_('Disable')}}
+                {%- endif %}
+              </td>
+              <td>
+                {%- if workflow.is_gakuninrdm %}
+                  {{_('Enable') }}
+                {%- else %}
+                  {{_('Disable')}}
+                {%- endif %}
+              </td>
+              <td>
+                {%- if  workflow.index_tree %}
+                  {{ workflow.index_tree.index_name }}
+                {%- else %}
+                  {{_('Undesignated')}}
+                {%- endif %}
+              </td>
+              <td>
+                {%- if  workflow.location %}
+                  {{ workflow.location.name }}
+                {%- else %}
+                  {{_('Undesignated')}}
+                {%- endif %}
+              </td>
+              <td>
+                {%- if workflow.display %}
+                  {{ workflow.display }}
+                {%- endif %}
+              </td>
+              <td>
+                {%- if workflow.hide %}
+                  {{ workflow.hide }}
+                {%- endif %}
+              </td>
+              <td class="hide"> </td>
+              <td>{{_(workflow.flow_define.flow_status.value)}}</td>
+              <td>{{workflow.updated.date()}}</td>
+            </tr>
+          {% endautoescape %}
+        {%- endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{%- endblock %}
