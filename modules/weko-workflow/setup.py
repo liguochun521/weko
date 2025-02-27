@@ -101,6 +101,7 @@ setup(
             'weko_workspaceworkflow = weko_workflow.admin:workspace_workflow_adminview',
         ],
         'invenio_assets.bundles': [
+            'workflow_workspace_js = weko_workflow.bundles:js_workspace',
             'workflow_js = weko_workflow.bundles:js_workflow',
             'workflow_item_link_js = weko_workflow.bundles:js_item_link',
             'workflow_activity_list_js = '

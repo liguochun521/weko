@@ -24,7 +24,7 @@ from weko_deposit.signals import item_created
 
 from . import config
 from .sessions import upt_activity_item
-from .views import depositactivity_blueprint, workflow_blueprint
+from .views import depositactivity_blueprint, workflow_blueprint, blueprint_itemapi
 
 
 class WekoWorkflow(object):
@@ -46,6 +46,8 @@ class WekoWorkflow(object):
         self.init_config(app)
         item_created.connect(upt_activity_item, app)
         app.register_blueprint(workflow_blueprint)
+        # app.register_blueprint(workspace_blueprint)
+        app.register_blueprint(blueprint_itemapi)
         app.register_blueprint(depositactivity_blueprint)
         app.extensions['weko-workflow'] = self
 

@@ -40,6 +40,8 @@ from weko_workflow.schema.marshmallow import ActionSchema, \
     SaveActivitySchema, CheckApprovalSchema,ResponseUnlockSchema
 from weko_workflow.schema.utils import get_schema_action, type_null_check
 from marshmallow.exceptions import ValidationError
+from weko_admin.models import AdminSettings
+from weko_records.api import ItemTypes
 
 from flask import Response, Blueprint, abort, current_app, has_request_context, \
     jsonify, make_response, render_template, request, session, url_for, send_file
@@ -70,6 +72,8 @@ from weko_deposit.pidstore import get_record_identifier, \
     get_record_without_version
 from weko_deposit.signals import item_created
 from weko_items_ui.api import item_login
+from weko_index_tree.rest import IndexTreeActionResource
+from weko_items_ui.utils import is_schema_include_key
 from weko_records.api import FeedbackMailList, ItemLink
 from weko_records.models import ItemMetadata
 from weko_records.serializers.utils import get_item_type_name
@@ -110,7 +114,9 @@ from .utils import IdentifierHandle, auto_fill_title, \
     send_usage_application_mail_for_guest_user, set_files_display_type, \
     update_approval_date, update_cache_data, validate_guest_activity_expired, \
     validate_guest_activity_token, make_activitylog_tsv, \
-    delete_lock_activity_cache, delete_user_lock_activity_cache
+    delete_lock_activity_cache, delete_user_lock_activity_cache, get_cinii_record_data, \
+    get_jalc_record_data, get_datacite_record_data
+
 
 workflow_blueprint = Blueprint(
     'weko_workflow',
@@ -120,11 +126,26 @@ workflow_blueprint = Blueprint(
     url_prefix='/workflow'
 )
 
+# workspace_blueprint = Blueprint(
+#     'weko_workspace',
+#     __name__,
+#     template_folder='templates',
+#     static_folder='static',
+#     url_prefix='/workspace'
+# )
+
 
 depositactivity_blueprint = Blueprint(
     'weko_activity_rest',
     __name__,
     url_prefix='/depositactivity',
+)
+
+
+blueprint_itemapi = Blueprint(
+    "weko_workspace",
+    __name__,
+    url_prefix="/workspaceAPI",
 )
 
 
@@ -440,7 +461,7 @@ def new_activity():
     # Get the design for widget rendering
     page, render_widgets = get_design_layout(
         community_id or current_app.config['WEKO_THEME_DEFAULT_COMMUNITY'])
-    print(666668888888888)
+
     return render_template(
         'weko_workflow/workflow_list.html',
         page=page,
@@ -799,7 +820,6 @@ def display_activity(activity_id="0"):
                 content:
                     text/html
     """
-    print(88888888888888888666666666666)
     check_flg = type_null_check(activity_id, str)
     if not check_flg:
         current_app.logger.error("display_activity: argument error")
@@ -813,6 +833,7 @@ def display_activity(activity_id="0"):
     action_endpoint, action_id, activity_detail, cur_action, histories, item, \
         steps, temporary_comment, workflow_detail = \
         get_activity_display_info(activity_id)
+    
     if any([s is None for s in [action_endpoint, action_id, activity_detail, cur_action, histories, steps, workflow_detail]]):
         current_app.logger.error("display_activity: can not get activity display info")
         return render_template("weko_theme/error.html",
@@ -1058,9 +1079,7 @@ def display_activity(activity_id="0"):
         _id = re.sub("\.[0-9]+", "", recid.pid_value)
     
     form = FlaskForm(request.form)
-    print(111111111111111111111111)
-    print(step_item_login_url)
-    # print(form[form_data])
+    
     return render_template(
         'weko_workflow/activity_detail.html',
         action_endpoint_key=current_app.config.get(
@@ -3526,669 +3545,290 @@ def workspaceDefaultConditionsSetting():
 # デフォルト条件設定　guan.shuang 20241211 end
 
 # itemRegistration登録 ri 20241213 start
-@workflow_blueprint.route('/workspace/workspaceItemRegistration')
+@workflow_blueprint.route('/item_registration', endpoint='itemregister')
 @login_required
-def workspaceItemRegistration(activity_id="0"):
-    activity_id="A-20241217-00004"
-    check_flg = type_null_check(activity_id, str)
-    if not check_flg:
-        current_app.logger.error("display_activity: argument error")
-        return render_template("weko_theme/error.html",
-                error="can not get data required for rendering")
-
-    activity = WorkActivity()
-    if "?" in activity_id:
-        activity_id = activity_id.split("?")[0]
-
-    action_endpoint, action_id, activity_detail, cur_action, histories, item, \
-        steps, temporary_comment, workflow_detail = \
-        get_activity_display_info(activity_id)
-    if any([s is None for s in [action_endpoint, action_id, activity_detail, cur_action, histories, steps, workflow_detail]]):
-        current_app.logger.error("display_activity: can not get activity display info")
-        return render_template("weko_theme/error.html",
-                error="can not get data required for rendering")
-
-    # display_activity of Identifier grant
-    identifier_setting = None
-    if action_endpoint == 'identifier_grant' and item:
-        community_id = request.args.get('community', None)
-        if not community_id:
-            community_id = 'Root Index'
-        identifier_setting = get_identifier_setting(community_id)
-
-        # valid date pidstore_identifier data
-        if identifier_setting:
-            text_empty = '<Empty>'
-            if not identifier_setting.jalc_doi:
-                identifier_setting.jalc_doi = text_empty
-            if not identifier_setting.jalc_crossref_doi:
-                identifier_setting.jalc_crossref_doi = text_empty
-            if not identifier_setting.jalc_datacite_doi:
-                identifier_setting.jalc_datacite_doi = text_empty
-            if not identifier_setting.ndl_jalc_doi:
-                identifier_setting.ndl_jalc_doi = text_empty
-    temporary_identifier_select = 0
-    temporary_identifier_inputs = []
-    last_identifier_setting = activity.get_action_identifier_grant(
-        activity_id=activity_id, action_id=action_id)
-    if last_identifier_setting:
-        temporary_identifier_select = last_identifier_setting.get(
-            'action_identifier_select')
-        temporary_identifier_inputs.append(
-            last_identifier_setting.get('action_identifier_jalc_doi'))
-        temporary_identifier_inputs.append(
-            last_identifier_setting.get('action_identifier_jalc_cr_doi'))
-        temporary_identifier_inputs.append(
-            last_identifier_setting.get('action_identifier_jalc_dc_doi'))
-        temporary_identifier_inputs.append(
-            last_identifier_setting.get('action_identifier_ndl_jalc_doi'))
-
-    temporary_journal = activity.get_action_journal(
-        activity_id=activity_id, action_id=action_id)
-    if temporary_journal:
-        temporary_journal = temporary_journal.action_journal
-
-    allow_multi_thumbnail = False
-    application_item_type = False
-    approval_record = []
-    cur_step = action_endpoint
-    data_type = activity_detail.extra_info.get(
-        'related_title') if activity_detail.extra_info else None
-    endpoints = {}
-    files = []
-    files_thumbnail = []
-    institute_position_list = WEKO_USERPROFILES_INSTITUTE_POSITION_LIST
-    is_auto_set_index_action = True
-    is_hidden_pubdate_value = False
-    item_save_uri = ''
-    item_type_name = get_item_type_name(workflow_detail.itemtype_id)
-    json_schema = ''
-    links = None
+def itemregister():
+        
+    print("========== workspace item_register =========")
     need_billing_file = False
     need_file = False
     need_thumbnail = False
-    position_list = WEKO_USERPROFILES_POSITION_LIST
-    recid = None
-    record = {}
-    schema_form = ''
-    show_autofill_metadata = True
-    step_item_login_url = None
-    term_and_condition_content = ''
-    title = ""
-    user_lock_key = "workflow_userlock_activity_{}".format(str(current_user.get_id()))
-    if action_endpoint in ['item_login',
-                           'item_login_application',
-                           'file_upload']:
-        if not activity.get_activity_by_id(activity_id):
-            pass
-        if activity.get_activity_by_id(activity_id).action_status != ActionStatusPolicy.ACTION_CANCELED:
-            cur_locked_val = str(get_cache_data(user_lock_key)) or str()
-            if not cur_locked_val:
-                activity_session = dict(
-                    activity_id=activity_id,
-                    action_id=activity_detail.action_id,
-                    action_version=cur_action.action_version,
-                    action_status=ActionStatusPolicy.ACTION_DOING,
-                    commond=''
-                )
-                session['activity_info'] = activity_session
-        # get item edit page info.
-        print(888888888)
-        print(workflow_detail.itemtype_id)
-        step_item_login_url, need_file, need_billing_file, \
-            record, json_schema, schema_form,\
-            item_save_uri, files, endpoints, need_thumbnail, files_thumbnail, \
-            allow_multi_thumbnail \
-            = item_login(item_type_id=workflow_detail.itemtype_id)
-        if not step_item_login_url:
-            current_app.logger.error("display_activity: can not get item")
-            return render_template("weko_theme/error.html",
-                    error="can not get data required for rendering")
+    settings = AdminSettings.get('workspace_workflow_settings')
+    if settings.workFlow_select_flg == '0':
+        # activity_id = WorkActivity().get_new_activity_id(),
 
-        application_item_type = is_usage_application_item_type(activity_detail)
+        workflow = WorkFlow()
+        workflow_detail = workflow.get_workflow_by_id(settings.work_flow_id)
+        
+        item_type = ItemTypes.get_by_id(workflow_detail.itemtype_id)
+        user_id = current_user.id if hasattr(current_user , 'id') else None
+        user_profile = None
+        if user_id:
+            from weko_user_profiles.views import get_user_profile_info
+            user_profile={}
+            user_profile['results'] = get_user_profile_info(int(user_id))
+        activity = WorkActivity()
+        post_activity = {
+            'flow_id': workflow_detail.flow_id,
+            'itemtype_id': workflow_detail.itemtype_id,
+            'workflow_id': workflow_detail.id
+        }
 
-        if not record and item:
-            record = item
-
-        redis_connection = RedisConnection()
-        sessionstore = redis_connection.connection(db=current_app.config['ACCOUNTS_SESSION_REDIS_DB_NO'], kv = True)
+        # 保留
+        try:
+            rtn = activity.init_activity(post_activity)
+            activity_id = rtn.activity_id
+            print(99999999999)
+            print(activity_id)
+        except Exception as ex:
+            self.logging_error('init_activity', str(ex))
+            raise InvalidInputRESTError()
 
 
-        if not (json_schema and schema_form):
-            current_app.logger.error("display_activity: can not get json_schema,schema_form")
-            return render_template("weko_theme/error.html",
-                    error="can not get data required for rendering")
-
-        if sessionstore.redis.exists(
-            'updated_json_schema_{}'.format(activity_id)) \
-            and sessionstore.get(
-                'updated_json_schema_{}'.format(activity_id)):
-            json_schema = (json_schema + "/{}").format(activity_id)
-            schema_form = (schema_form + "/{}").format(activity_id)
+        if item_type is None:
+            return render_template('weko_items_ui/iframe/error.html',
+                                    error_type='no_itemtype'),404
+        need_file, need_billing_file = is_schema_include_key(item_type.schema)
 
 
+        json_schema = '/items/jsonschema/{}'.format(workflow_detail.itemtype_id)
+        schema_form = '/items/schemaform_simple/{}'.format(workflow_detail.itemtype_id)
+        record = {}
+        files = []
+        # need_billing_file = []
+        # need_file = []
+        endpoints = {}
+        if "subitem_thumbnail" in json.dumps(item_type.schema):
+            need_thumbnail = True
+
+        form = FlaskForm(request.form)
+        institute_position_list = WEKO_USERPROFILES_INSTITUTE_POSITION_LIST
+        position_list = WEKO_USERPROFILES_POSITION_LIST
+        from weko_records_ui.utils import get_list_licence
+        list_license = get_list_licence()
+        # ctx={'community': None, 'record_org': [], 'files_org': [], 'thumbnails_org': [], 'files_thumbnail': [], 'files': [], 'record': []}
+        item_type_name = get_item_type_name(workflow_detail.itemtype_id)
         title = auto_fill_title(item_type_name)
         show_autofill_metadata = is_show_autofill_metadata(item_type_name)
         is_hidden_pubdate_value = is_hidden_pubdate(item_type_name)
 
 
-    # if 'approval' == action_endpoint:
-    if activity_detail and \
-            activity_detail.item_id and \
-            activity_detail.activity_status != ActivityStatusPolicy.ACTIVITY_CANCEL:
-        try:
-            item_id = str(activity_detail.item_id)
-            # get record data for the first time access to editing item screen
-            recid, approval_record = get_pid_and_record(item_id)
-            files, files_thumbnail = get_files_and_thumbnail(activity_id, item_id)
+        #index
+        from invenio_records_rest.utils import obj_or_import_string
+        # ctx = dict(
+        #     'read_permission_factory': <Permission needs={Need(method='role', value='Repository Administrator'), Need(method='action', value='superuser-access'), Need(method='role', value='System Administrator'), Need(method='action', value='index-tree-access'), Need(method='role', value='Community Administrator')} excludes=set()>, 'create_permission_factory': <Permission needs={Need(method='role', value='Repository Administrator'), Need(method='action', value='superuser-access'), Need(method='role', value='System Administrator'), Need(method='action', value='index-tree-access'), Need(method='role', value='Community Administrator')} excludes=set()>, 'update_permission_factory': <Permission needs={Need(method='role', value='Repository Administrator'), Need(method='action', value='superuser-access'), Need(method='role', value='System Administrator'), Need(method='action', value='index-tree-access'), Need(method='role', value='Community Administrator')} excludes=set()>, 'delete_permission_factory': <Permission needs={Need(method='role', value='Repository Administrator'), Need(method='action', value='superuser-access'), Need(method='role', value='System Administrator'), Need(method='action', value='index-tree-access'), Need(method='role', value='Community Administrator')} excludes=set()>, 
+        #     'record_class': <class 'weko_index_tree.api.Indexes'>, 'loaders': {'application/json': <function create_blueprint.<locals>.<lambda> at 0x7f2865602950>}
+        # )
 
-            links = base_factory(recid)
-
-        except PIDDeletedError:
-            current_app.logger.debug("PIDDeletedError: {}".format(sys.exc_info()))
-            abort(404)
-        except PIDDoesNotExistError:
-            current_app.logger.debug("PIDDoesNotExistError: {}".format(sys.exc_info()))
-            abort(404)
-        except Exception:
-            current_app.logger.error("Unexpected error: {}".format(sys.exc_info()))
-
-    res_check = check_authority_action(str(activity_id), int(action_id),
-                                       is_auto_set_index_action,
-                                       activity_detail.action_order)
-
-    getargs = request.args
-    ctx = {'community': None}
-    community_id = ""
-    if 'community' in getargs:
-        comm = GetCommunity.get_community_by_id(request.args.get('community'))
-        ctx = {'community': comm}
-        if comm is not None:
-            community_id = comm.id
-    # be use for index tree and comment page.
-    if 'item_login' == action_endpoint or \
-            'item_login_application' == action_endpoint or \
-            'file_upload' == action_endpoint:
-        cur_locked_val = str(get_cache_data(user_lock_key)) or str()
-        if not cur_locked_val:
-            session['itemlogin_id'] = activity_id
-            session['itemlogin_activity'] = activity_detail
-            session['itemlogin_item'] = item
-            session['itemlogin_steps'] = steps
-            session['itemlogin_action_id'] = action_id
-            session['itemlogin_cur_step'] = cur_step
-            session['itemlogin_record'] = approval_record
-            session['itemlogin_histories'] = histories
-            session['itemlogin_res_check'] = res_check
-            session['itemlogin_pid'] = recid
-            session['itemlogin_community_id'] = community_id
-
-    user_id = current_user.id if hasattr(current_user , 'id') else None
-    user_profile = None
-    if user_id:
-        from weko_user_profiles.views import get_user_profile_info
-        user_profile={}
-        user_profile['results'] = get_user_profile_info(int(user_id))
-    from weko_records_ui.utils import get_list_licence
-    from weko_theme.utils import get_design_layout
-
-    # Get the design for widget rendering
-    page, render_widgets = get_design_layout(
-        community_id or current_app.config['WEKO_THEME_DEFAULT_COMMUNITY'])
-
-    list_license = get_list_licence()
-    if list_license is None or not isinstance(list_license, list):
-        current_app.logger.error("display_activity: bad value for list_licences")
-        return render_template("weko_theme/error.html",
-                error="can not get data required for rendering")
-
-
-    if action_endpoint == 'item_link' and recid:
-        item_link = ItemLink.get_item_link_info(recid.pid_value)
-        ctx['item_link'] = item_link
-
-    # Get item link info.
-    if activity_detail.activity_status != ActivityStatusPolicy.ACTIVITY_CANCEL:
-        record_detail_alt = get_main_record_detail(
-            activity_id, activity_detail, action_endpoint, item,
-            approval_record, files, files_thumbnail)
-        if not record_detail_alt:
-            current_app.logger.error("display_activity: bad value for record_detail_alt")
-            return render_template("weko_theme/error.html",
-                        error="can not get data required for rendering")
-
-        ctx.update(
-            dict(
-                record_org=record_detail_alt.get('record'),
-                files_org=record_detail_alt.get('files'),
-                thumbnails_org=record_detail_alt.get('files_thumbnail')
-            )
-        )
-
-    # Get email approval key
-    approval_email_key = get_approval_keys()
-
-    # Get Auto fill data for Restricted Access Item Type.
-    usage_data = get_usage_data(
-        workflow_detail.itemtype_id, activity_detail, user_profile)
-    ctx.update(usage_data)
-
-    if approval_record and files:
-        files = set_files_display_type(approval_record, files)
-
-
-    ctx.update(
-        dict(
-            files_thumbnail=files_thumbnail,
-            files=files,
-            record=approval_record
-        )
-    )
-    _id = None
-    if recid:
-        _id = re.sub("\.[0-9]+", "", recid.pid_value)
-    
-    form = FlaskForm(request.form)
-    step_item_login_url = "weko_items_ui/iframe/item_edit_workSpace.html"
-    return render_template(
-        'weko_workflow/workspaceItemRegistration.html',
-        action_endpoint_key=current_app.config.get(
-            'WEKO_ITEMS_UI_ACTION_ENDPOINT_KEY'),
-        action_id=action_id,
-        activity_id=activity_detail.activity_id,
-        activity=activity_detail,
-        allow_multi_thumbnail=allow_multi_thumbnail,
-        application_item_type=application_item_type,
-        approval_email_key=approval_email_key,
-        auto_fill_data_type=data_type,
-        auto_fill_title=title,
-        community_id=community_id,
-        cur_step=cur_step,
-        enable_contributor=current_app.config[
-            'WEKO_WORKFLOW_ENABLE_CONTRIBUTOR'],
-        enable_feedback_maillist=current_app.config[
-            'WEKO_WORKFLOW_ENABLE_FEEDBACK_MAIL'],
-        endpoints=endpoints,
-        error_type='item_login_error',
-        histories=histories,
-        id=workflow_detail.itemtype_id,
-        idf_grant_data=identifier_setting,
-        idf_grant_input=IDENTIFIER_GRANT_LIST,
-        idf_grant_method=current_app.config.get(
-            'IDENTIFIER_GRANT_SUFFIX_METHOD', IDENTIFIER_GRANT_SUFFIX_METHOD),
-        institute_position_list=institute_position_list,
-        is_auto_set_index_action=is_auto_set_index_action,
-        is_enable_item_name_link=is_enable_item_name_link(
-            action_endpoint, item_type_name),
-        is_hidden_pubdate=is_hidden_pubdate_value,
-        is_show_autofill_metadata=show_autofill_metadata,
-        item_save_uri=item_save_uri,
-        item=item,
-        jsonschema=json_schema,
-        links=links,
-        list_license=list_license,
-        need_billing_file=need_billing_file,
-        need_file=need_file,
-        need_thumbnail=need_thumbnail,
-        out_put_report_title=current_app.config[
-            'WEKO_ITEMS_UI_OUTPUT_REGISTRATION_TITLE'],
-        page=page,
-        pid=recid,
-        _id=_id,
-        position_list=position_list,
-        records=record,
-        render_widgets=render_widgets,
-        res_check=res_check,
-        schemaform=schema_form,
-        step_item_login_url=step_item_login_url,
-        steps=steps,
-        temporary_comment=temporary_comment,
-        temporary_idf_grant_suffix=temporary_identifier_inputs,
-        temporary_idf_grant=temporary_identifier_select,
-        temporary_journal=temporary_journal,
-        term_and_condition_content=term_and_condition_content,
-        user_profile=user_profile,
-        form=form,
-        **ctx
-    )     
-    #     return render_template(
-    #     'weko_workflow/workspaceItemRegistration.html',
-    #     step_item_login_url='weko_items_ui/iframe/item_edit.html',
-
-    #     need_billing_file=False,
-    #     need_file=False,
-    #     need_thumbnail=False,
-    #     files=None
-
-    # )
-# @workflow_blueprint.route('/item_registration', endpoint='itemregister')
-# @login_required
-# def itemregister(activity_id="0"):  
-#     print("========== workspace item_register =========")
-#     activity_id="A-20241211-00001"
-#     check_flg = type_null_check(activity_id, str)
-
-#     activity = WorkActivity()
-#     if "?" in activity_id:
-#         activity_id = activity_id.split("?")[0]
-
-#     action_endpoint, action_id, activity_detail, cur_action, histories, item, \
-#         steps, temporary_comment, workflow_detail = \
-#         get_activity_display_info(activity_id)
-
-#     # display_activity of Identifier grant
-#     identifier_setting = None
-#     if action_endpoint == 'identifier_grant' and item:
-#         community_id = request.args.get('community', None)
-#         if not community_id:
-#             community_id = 'Root Index'
-#         identifier_setting = get_identifier_setting(community_id)
-
-#         # valid date pidstore_identifier data
-#         if identifier_setting:
-#             text_empty = '<Empty>'
-#             if not identifier_setting.jalc_doi:
-#                 identifier_setting.jalc_doi = text_empty
-#             if not identifier_setting.jalc_crossref_doi:
-#                 identifier_setting.jalc_crossref_doi = text_empty
-#             if not identifier_setting.jalc_datacite_doi:
-#                 identifier_setting.jalc_datacite_doi = text_empty
-#             if not identifier_setting.ndl_jalc_doi:
-#                 identifier_setting.ndl_jalc_doi = text_empty
-#     temporary_identifier_select = 0
-#     temporary_identifier_inputs = []
-#     last_identifier_setting = activity.get_action_identifier_grant(
-#         activity_id=activity_id, action_id=action_id)
-#     if last_identifier_setting:
-#         temporary_identifier_select = last_identifier_setting.get(
-#             'action_identifier_select')
-#         temporary_identifier_inputs.append(
-#             last_identifier_setting.get('action_identifier_jalc_doi'))
-#         temporary_identifier_inputs.append(
-#             last_identifier_setting.get('action_identifier_jalc_cr_doi'))
-#         temporary_identifier_inputs.append(
-#             last_identifier_setting.get('action_identifier_jalc_dc_doi'))
-#         temporary_identifier_inputs.append(
-#             last_identifier_setting.get('action_identifier_ndl_jalc_doi'))
-
-#     temporary_journal = activity.get_action_journal(
-#         activity_id=activity_id, action_id=action_id)
-#     if temporary_journal:
-#         temporary_journal = temporary_journal.action_journal
-
-#     allow_multi_thumbnail = False
-#     application_item_type = False
-#     approval_record = []
-#     cur_step = action_endpoint
-#     data_type = activity_detail.extra_info.get(
-#         'related_title') if activity_detail.extra_info else None
-#     endpoints = {}
-#     files = []
-#     files_thumbnail = []
-#     institute_position_list = WEKO_USERPROFILES_INSTITUTE_POSITION_LIST
-#     is_auto_set_index_action = True
-#     is_hidden_pubdate_value = False
-#     item_save_uri = ''
-#     item_type_name = get_item_type_name(workflow_detail.itemtype_id)
-#     json_schema = ''
-#     links = None
-#     need_billing_file = False
-#     need_file = False
-#     need_thumbnail = False
-#     position_list = WEKO_USERPROFILES_POSITION_LIST
-#     recid = None
-#     record = {}
-#     schema_form = ''
-#     show_autofill_metadata = True
-#     step_item_login_url = None
-#     term_and_condition_content = ''
-#     title = ""
-#     user_lock_key = "workflow_userlock_activity_{}".format(str(current_user.get_id()))
-#     if action_endpoint in ['item_login',
-#                            'item_login_application',
-#                            'file_upload']:
-#         if not activity.get_activity_by_id(activity_id):
-#             pass
-#         if activity.get_activity_by_id(activity_id).action_status != ActionStatusPolicy.ACTION_CANCELED:
-#             cur_locked_val = str(get_cache_data(user_lock_key)) or str()
-#             if not cur_locked_val:
-#                 activity_session = dict(
-#                     activity_id=activity_id,
-#                     action_id=activity_detail.action_id,
-#                     action_version=cur_action.action_version,
-#                     action_status=ActionStatusPolicy.ACTION_DOING,
-#                     commond=''
-#                 )
-#                 session['activity_info'] = activity_session
-#         # get item edit page info.
-#         print(888888888)
-#         print(workflow_detail.itemtype_id)
-#         step_item_login_url, need_file, need_billing_file, \
-#             record, json_schema, schema_form,\
-#             item_save_uri, files, endpoints, need_thumbnail, files_thumbnail, \
-#             allow_multi_thumbnail \
-#             = item_login(item_type_id=workflow_detail.itemtype_id)
-#         if not step_item_login_url:
-#             current_app.logger.error("display_activity: can not get item")
-#             return render_template("weko_theme/error.html",
-#                     error="can not get data required for rendering")
-
-#         application_item_type = is_usage_application_item_type(activity_detail)
-
-#         if not record and item:
-#             record = item
-
-#         redis_connection = RedisConnection()
-#         sessionstore = redis_connection.connection(db=current_app.config['ACCOUNTS_SESSION_REDIS_DB_NO'], kv = True)
-
-
-#         if not (json_schema and schema_form):
-#             current_app.logger.error("display_activity: can not get json_schema,schema_form")
-#             return render_template("weko_theme/error.html",
-#                     error="can not get data required for rendering")
-
-#         if sessionstore.redis.exists(
-#             'updated_json_schema_{}'.format(activity_id)) \
-#             and sessionstore.get(
-#                 'updated_json_schema_{}'.format(activity_id)):
-#             json_schema = (json_schema + "/{}").format(activity_id)
-#             schema_form = (schema_form + "/{}").format(activity_id)
-
-
-#         title = auto_fill_title(item_type_name)
-#         show_autofill_metadata = is_show_autofill_metadata(item_type_name)
-#         is_hidden_pubdate_value = is_hidden_pubdate(item_type_name)
-
-
-#     # if 'approval' == action_endpoint:
-#     if activity_detail and \
-#             activity_detail.item_id and \
-#             activity_detail.activity_status != ActivityStatusPolicy.ACTIVITY_CANCEL:
-#         try:
-#             item_id = str(activity_detail.item_id)
-#             # get record data for the first time access to editing item screen
-#             recid, approval_record = get_pid_and_record(item_id)
-#             files, files_thumbnail = get_files_and_thumbnail(activity_id, item_id)
-
-#             links = base_factory(recid)
-
-#         except PIDDeletedError:
-#             current_app.logger.debug("PIDDeletedError: {}".format(sys.exc_info()))
-#             abort(404)
-#         except PIDDoesNotExistError:
-#             current_app.logger.debug("PIDDoesNotExistError: {}".format(sys.exc_info()))
-#             abort(404)
-#         except Exception:
-#             current_app.logger.error("Unexpected error: {}".format(sys.exc_info()))
-
-#     res_check = check_authority_action(str(activity_id), int(action_id),
-#                                        is_auto_set_index_action,
-#                                        activity_detail.action_order)
-
-#     getargs = request.args
-#     ctx = {'community': None}
-#     community_id = ""
-#     if 'community' in getargs:
-#         comm = GetCommunity.get_community_by_id(request.args.get('community'))
-#         ctx = {'community': comm}
-#         if comm is not None:
-#             community_id = comm.id
-#     # be use for index tree and comment page.
-#     if 'item_login' == action_endpoint or \
-#             'item_login_application' == action_endpoint or \
-#             'file_upload' == action_endpoint:
-#         cur_locked_val = str(get_cache_data(user_lock_key)) or str()
-#         if not cur_locked_val:
-#             session['itemlogin_id'] = activity_id
-#             session['itemlogin_activity'] = activity_detail
-#             session['itemlogin_item'] = item
-#             session['itemlogin_steps'] = steps
-#             session['itemlogin_action_id'] = action_id
-#             session['itemlogin_cur_step'] = cur_step
-#             session['itemlogin_record'] = approval_record
-#             session['itemlogin_histories'] = histories
-#             session['itemlogin_res_check'] = res_check
-#             session['itemlogin_pid'] = recid
-#             session['itemlogin_community_id'] = community_id
-
-#     user_id = current_user.id if hasattr(current_user , 'id') else None
-#     user_profile = None
-#     if user_id:
-#         from weko_user_profiles.views import get_user_profile_info
-#         user_profile={}
-#         user_profile['results'] = get_user_profile_info(int(user_id))
-#     from weko_records_ui.utils import get_list_licence
-#     from weko_theme.utils import get_design_layout
-
-#     # Get the design for widget rendering
-#     page, render_widgets = get_design_layout(
-#         community_id or current_app.config['WEKO_THEME_DEFAULT_COMMUNITY'])
-
-#     list_license = get_list_licence()
-#     if list_license is None or not isinstance(list_license, list):
-#         current_app.logger.error("display_activity: bad value for list_licences")
-#         return render_template("weko_theme/error.html",
-#                 error="can not get data required for rendering")
-
-
-#     if action_endpoint == 'item_link' and recid:
-#         item_link = ItemLink.get_item_link_info(recid.pid_value)
-#         ctx['item_link'] = item_link
-
-#     # Get item link info.
-#     if activity_detail.activity_status != ActivityStatusPolicy.ACTIVITY_CANCEL:
-#         record_detail_alt = get_main_record_detail(
-#             activity_id, activity_detail, action_endpoint, item,
-#             approval_record, files, files_thumbnail)
-#         if not record_detail_alt:
-#             current_app.logger.error("display_activity: bad value for record_detail_alt")
-#             return render_template("weko_theme/error.html",
-#                         error="can not get data required for rendering")
-
-#         ctx.update(
-#             dict(
-#                 record_org=record_detail_alt.get('record'),
-#                 files_org=record_detail_alt.get('files'),
-#                 thumbnails_org=record_detail_alt.get('files_thumbnail')
-#             )
-#         )
-
-#     # Get email approval key
-#     approval_email_key = get_approval_keys()
-
-#     # Get Auto fill data for Restricted Access Item Type.
-#     usage_data = get_usage_data(
-#         workflow_detail.itemtype_id, activity_detail, user_profile)
-#     ctx.update(usage_data)
-
-#     if approval_record and files:
-#         files = set_files_display_type(approval_record, files)
-
-
-#     ctx.update(
-#         dict(
-#             files_thumbnail=files_thumbnail,
-#             files=files,
-#             record=approval_record
-#         )
-#     )
-#     _id = None
-#     if recid:
-#         _id = re.sub("\.[0-9]+", "", recid.pid_value)
-    
-#     form = FlaskForm(request.form)
-#     step_item_login_url = "weko_items_ui/iframe/item_edit_workSpace.html"
-#     return render_template(
-#         'weko_workflow/item_register.html',
-#         action_endpoint_key=current_app.config.get(
-#             'WEKO_ITEMS_UI_ACTION_ENDPOINT_KEY'),
-#         action_id=action_id,
-#         activity_id=activity_detail.activity_id,
-#         activity=activity_detail,
-#         allow_multi_thumbnail=allow_multi_thumbnail,
-#         application_item_type=application_item_type,
-#         approval_email_key=approval_email_key,
-#         auto_fill_data_type=data_type,
-#         auto_fill_title=title,
-#         community_id=community_id,
-#         cur_step=cur_step,
-#         enable_contributor=current_app.config[
-#             'WEKO_WORKFLOW_ENABLE_CONTRIBUTOR'],
-#         enable_feedback_maillist=current_app.config[
-#             'WEKO_WORKFLOW_ENABLE_FEEDBACK_MAIL'],
-#         endpoints=endpoints,
-#         error_type='item_login_error',
-#         histories=histories,
-#         id=workflow_detail.itemtype_id,
-#         idf_grant_data=identifier_setting,
-#         idf_grant_input=IDENTIFIER_GRANT_LIST,
-#         idf_grant_method=current_app.config.get(
-#             'IDENTIFIER_GRANT_SUFFIX_METHOD', IDENTIFIER_GRANT_SUFFIX_METHOD),
-#         institute_position_list=institute_position_list,
-#         is_auto_set_index_action=is_auto_set_index_action,
-#         is_enable_item_name_link=is_enable_item_name_link(
-#             action_endpoint, item_type_name),
-#         is_hidden_pubdate=is_hidden_pubdate_value,
-#         is_show_autofill_metadata=show_autofill_metadata,
-#         item_save_uri=item_save_uri,
-#         item=item,
-#         jsonschema=json_schema,
-#         links=links,
-#         list_license=list_license,
-#         need_billing_file=need_billing_file,
-#         need_file=need_file,
-#         need_thumbnail=need_thumbnail,
-#         out_put_report_title=current_app.config[
-#             'WEKO_ITEMS_UI_OUTPUT_REGISTRATION_TITLE'],
-#         page=page,
-#         pid=recid,
-#         _id=_id,
-#         position_list=position_list,
-#         records=record,
-#         render_widgets=render_widgets,
-#         res_check=res_check,
-#         schemaform=schema_form,
-#         step_item_login_url=step_item_login_url,
-#         steps=steps,
-#         temporary_comment=temporary_comment,
-#         temporary_idf_grant_suffix=temporary_identifier_inputs,
-#         temporary_idf_grant=temporary_identifier_select,
-#         temporary_journal=temporary_journal,
-#         term_and_condition_content=term_and_condition_content,
-#         user_profile=user_profile,
-#         form=form,
-#         **ctx
-#     )     
-#     #     return render_template(
-#     #     'weko_workflow/item_register.html'
-#     # )
-@workflow_blueprint.route('/item_registration', endpoint='itemregister')
-@login_required
-def itemregister():
         
-        print("========== workspace item_register =========")
-        
+        from weko_theme.utils import get_design_layout, has_widget_design
+        from invenio_i18n.ext import current_i18n
+
+
+        action_endpoint, action_id, activity_detail, cur_action, histories, item, \
+            steps, temporary_comment, workflow_detail = \
+            get_activity_display_info(activity_id)
+
+        user_lock_key = "workflow_userlock_activity_{}".format(str(current_user.get_id()))
+        if action_endpoint in ['item_login',
+                            'item_login_application',
+                            'file_upload']:
+            if not activity.get_activity_by_id(activity_id):
+                pass
+            if activity.get_activity_by_id(activity_id).action_status != ActionStatusPolicy.ACTION_CANCELED:
+                cur_locked_val = str(get_cache_data(user_lock_key)) or str()
+                if not cur_locked_val:
+                    activity_session = dict(
+                        activity_id=activity_id,
+                        action_id=activity_detail.action_id,
+                        action_version=cur_action.action_version,
+                        action_status=ActionStatusPolicy.ACTION_DOING,
+                        commond=''
+                    )
+                    session['activity_info'] = activity_session
+
+        # be use for index tree and comment page.
+        redis_connection = RedisConnection()
+        sessionstore = redis_connection.connection(db=current_app.config['ACCOUNTS_SESSION_REDIS_DB_NO'], kv = True)
+
+        approval_record = []
+        is_auto_set_index_action = True
+        recid = None
+        community_id = ""
+        res_check = check_authority_action(str(activity_id), int(action_id),
+                                    is_auto_set_index_action,
+                                    activity_detail.action_order)
+        if 'item_login' == action_endpoint or \
+                'item_login_application' == action_endpoint or \
+                'file_upload' == action_endpoint:
+            cur_locked_val = str(get_cache_data(user_lock_key)) or str()
+            if not cur_locked_val:
+                session['itemlogin_id'] = activity_id
+                session['itemlogin_activity'] = activity_detail
+                session['itemlogin_item'] = item
+                session['itemlogin_steps'] = steps
+                session['itemlogin_action_id'] = action_id
+                session['itemlogin_cur_step'] = action_endpoint
+                session['itemlogin_record'] = approval_record
+                session['itemlogin_histories'] = histories
+                session['itemlogin_res_check'] = res_check
+                session['itemlogin_pid'] = recid
+                session['itemlogin_community_id'] = community_id
+
         return render_template(
-        'weko_workflow/item_register.html'
-    )
-# itemRegistration登録　ri 20241213 end
+            'weko_workflow/item_register.html',
+            # usage_type='Application',
+            need_file=need_file,
+            need_billing_file=need_billing_file,
+            records=record,
+            jsonschema=json_schema,
+            schemaform=schema_form,
+            id=workflow_detail.itemtype_id,
+            itemtype_id=workflow_detail.itemtype_id,
+            files=files,
+            # activity_id = 'A-20250130-00084',
+            licences=current_app.config.get('WEKO_RECORDS_UI_LICENSE_DICT'),
+            activity_id = activity_id,
+
+            # render_header_footer=render_header_footer,
+
+            institute_position_list=institute_position_list,
+            position_list=position_list,
+            # action_endpoint_key={},
+            action_id=3,
+            # activity='Activity 11',
+            endpoints=endpoints,
+            # allow_multi_thumbnail=False,
+            # application_item_type=False,
+            # approval_email_key=['parentkey.subitem_advisor_mail_address', 'parentkey.subitem_guarantor_mail_address'],
+            # auto_fill_data_type=None,
+            # auto_fill_title='',
+            # community_id='',
+            cur_step='item_login',
+            enable_contributor=current_app.config[
+                'WEKO_WORKFLOW_ENABLE_CONTRIBUTOR'],
+            enable_feedback_maillist=current_app.config[
+                'WEKO_WORKFLOW_ENABLE_FEEDBACK_MAIL'],
+            # error_type='item_login_error',
+            # idf_grant_data=None,
+            # idf_grant_method=current_app.config.get(
+            #     'IDENTIFIER_GRANT_SUFFIX_METHOD', IDENTIFIER_GRANT_SUFFIX_METHOD),
+            is_auto_set_index_action=True,
+            # is_enable_item_name_link=True,
+            item_save_uri='/items/iframe/model/save',
+            # item=None,
+            # links=None,
+            # list_license=list_license,
+            # need_thumbnail=False,
+            # out_put_report_title=current_app.config[
+            #     'WEKO_ITEMS_UI_OUTPUT_REGISTRATION_TITLE'],
+            page=None,
+            # pid=None,
+            # _id=None,
+            # render_widgets=False,
+            # res_check=0,
+            steps=steps,
+            # temporary_comment=None,
+            # temporary_idf_grant_suffix=[],
+            # temporary_idf_grant=0,
+            # temporary_journal=None,
+            # term_and_condition_content='',
+            # user_profile=user_profile,
+            # auto_fill_title=title,
+            # is_hidden_pubdate=is_hidden_pubdate_value,
+            is_show_autofill_metadata=show_autofill_metadata,
+            # render_widgets=render_widgets,
+            form=form
+        )
+
+
+@blueprint_itemapi.route('/get_auto_fill_record_data_ciniiapi', methods=['POST'])
+@login_required_customize
+def get_auto_fill_record_data_ciniiapi():
+    """Get auto fill record data.
+
+    :return: record model as json
+    """
+    result = {
+        'result': '',
+        'items': '',
+        'error': ''
+    }
+
+    if request.headers['Content-Type'] != 'application/json':
+        result['error'] = _('Header Error')
+        return jsonify(result)
+
+    data = request.get_json()
+    # api_type = data.get('api_type', '')
+    search_data = data.get('search_data', '')
+    item_type_id = data.get('item_type_id', '')
+
+    try:
+        api_response = get_cinii_record_data(
+            search_data, item_type_id)
+        result['result'] = api_response
+    except Exception as e:
+        result['error'] = str(e)
+    return jsonify(result)
+
+
+@blueprint_itemapi.route('/get_auto_fill_record_data_jalcapi', methods=['POST'])
+@login_required_customize
+def get_auto_fill_record_data_jalcapi():
+    """Get auto fill record data.
+
+    :return: record model as json
+    """
+    result = {
+        'result': '',
+        'items': '',
+        'error': ''
+    }
+
+    if request.headers['Content-Type'] != 'application/json':
+        result['error'] = _('Header Error')
+        return jsonify(result)
+
+    data = request.get_json()
+    search_data = data.get('search_data', '')
+    item_type_id = data.get('item_type_id', '')
+    try:
+        api_response = get_jalc_record_data(
+            search_data, item_type_id)
+        result['result'] = api_response
+    except Exception as e:
+        result['error'] = str(e)
+    return jsonify(result)
+
+
+@blueprint_itemapi.route('/get_auto_fill_record_data_dataciteapi', methods=['POST'])
+@login_required_customize
+def get_auto_fill_record_data_dataciteapi():
+    """Get auto fill record data.
+
+    :return: record model as json
+    """
+    result = {
+        'result': '',
+        'items': '',
+        'error': ''
+    }
+
+    if request.headers['Content-Type'] != 'application/json':
+        result['error'] = _('Header Error')
+        return jsonify(result)
+
+    data = request.get_json()
+    search_data = data.get('search_data', '')
+    item_type_id = data.get('item_type_id', '')
+    try:
+        api_response = get_datacite_record_data(
+            search_data, item_type_id)
+        result['result'] = api_response
+    except Exception as e:
+        result['error'] = str(e)
+    return jsonify(result)
+
+
+# itemRegistration登録　ri 20250113 end

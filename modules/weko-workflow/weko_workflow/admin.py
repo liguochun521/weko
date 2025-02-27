@@ -20,10 +20,12 @@
 
 """WEKO3 module docstring."""
 
+import sys
 import re
 import uuid
 
-from flask import abort, current_app, jsonify, request, url_for
+from flask_wtf import FlaskForm
+from flask import abort, current_app, jsonify, flash, request, url_for
 from flask_admin import BaseView, expose
 from flask_login import current_user
 from flask_babelex import gettext as _
@@ -34,6 +36,7 @@ from invenio_i18n.ext import current_i18n
 from weko_index_tree.models import Index
 from weko_records.api import ItemTypes
 from weko_records.models import ItemTypeProperty
+from weko_admin.models import AdminSettings
 
 from .api import Action, Flow, WorkActivity, WorkFlow
 from .config import WEKO_WORKFLOW_SHOW_HARVESTING_ITEMS
@@ -318,8 +321,6 @@ class WorkFlowSettingView(BaseView):
         flow_api = Flow()
         flow_list = flow_api.get_flow_list()
         index_list = Index().get_all()
-        print(2222222222)
-        print(index_list)
         location_list = Location.query.order_by(Location.id.asc()).all()
         hide = []
         role = Role.query.all()
@@ -530,278 +531,43 @@ class WorkFlowSettingView(BaseView):
         return cls.MULTI_LANGUAGE[key].get(language)
 
 class WorkSpaceWorkFlowSettingView(BaseView):
-    MULTI_LANGUAGE = {
-        "display": {
-            "en": "Display",
-            "ja": "表示"
-        },
-        "hide": {
-            "en": "Hide",
-            "ja": "非表示",
-        },
-        "display_hide": {
-            "en": "Display/Hide",
-            "ja": "表示/非表示",
-        }
-    }
+    """WorkSpace WorkFlow setting view."""
 
-    @expose('/', methods=['GET'])
+    @expose('/', methods=['GET', 'POST'])
     def index(self):
-        """Get flow list info.
-
-        :return:
-        """
-        workflow = WorkFlow()
-        workflows = workflow.get_workflow_list()
-        role = Role.query.all()
-        for wf in workflows:
-            index_tree = Index().get_index_by_id(wf.index_tree_id)
-
-            wf.index_tree = index_tree
-            list_hide = Role.query.outerjoin(WorkflowRole) \
-                .filter(WorkflowRole.workflow_id == wf.id) \
-                .filter(WorkflowRole.role_id == Role.id) \
-                .all()
-            if list_hide:
-                displays, hides = self.get_name_display_hide(list_hide, role)
-            else:
-                displays = [x.name for x in role]
-                hides = []
-            wf.display = ',<br>'.join(displays)
-            wf.hide = ',<br>'.join(hides)
-
-        display_label = self.get_language_workflows("display")
-
-        return self.render(
-            'weko_workflow/admin/workspace_workflow_setting.html',
-            workflows=workflows,
-            display_label=display_label
-        )
-
-    @expose('/<string:workflow_id>', methods=['GET'])
-    def workflow_detail(self, workflow_id='0'):
-        """Get workflow info.
-
-        :return:
-        """
-        if WEKO_WORKFLOW_SHOW_HARVESTING_ITEMS:
-            itemtype_list = ItemTypes.get_latest()
-        else:
-            itemtype_list = ItemTypes.get_latest_custorm_harvesting()
-        flow_api = Flow()
-        flow_list = flow_api.get_flow_list()
-        index_list = Index().get_all()
-        print(2222222222)
-        print(index_list)
-        location_list = Location.query.order_by(Location.id.asc()).all()
-        hide = []
-        role = Role.query.all()
-        display_label = self.get_language_workflows("display")
-        hide_label = self.get_language_workflows("hide")
-        display_hide = self.get_language_workflows("display_hide")
-
-        # the workflow that open_restricted is true can update by system administrator only
-        is_sysadmin = False
-        for r in current_user.roles:
-            if r.name in current_app.config['WEKO_SYS_USER']:
-                is_sysadmin =True
-                break
-
-        if '0' == workflow_id:
-            """Create new workflow"""
-            return self.render(
-                'weko_workflow/admin/workflow_detail.html',
-                workflow=None,
-                itemtype_list=itemtype_list,
-                flow_list=flow_list,
-                index_list=index_list,
-                location_list=location_list,
-                hide_list=hide,
-                display_list=role,
-                display_label=display_label,
-                hide_label=hide_label,
-                display_hide_label=display_hide,
-                is_sysadmin=is_sysadmin,
-            )
-
-        """Update the workflow info"""
-        workflow = WorkFlow()
-        workflows = workflow.get_workflow_detail(workflow_id)
-        hide = Role.query.outerjoin(WorkflowRole) \
-            .filter(WorkflowRole.workflow_id == workflows.id) \
-            .filter(WorkflowRole.role_id == Role.id) \
-            .all()
-        if hide:
-            display = self.get_displays(hide, role)
-        else:
-            display = role
-            hide = []
-        
-        if workflows.open_restricted and not is_sysadmin:
-            abort(403)
-
-        return self.render(
-            'weko_workflow/admin/workflow_detail.html',
-            workflow=workflows,
-            itemtype_list=itemtype_list,
-            flow_list=flow_list,
-            index_list=index_list,
-            location_list=location_list,
-            hide_list=hide,
-            display_list=display,
-            display_label=display_label,
-            hide_label=hide_label,
-            display_hide_label=display_hide,
-            is_sysadmin=is_sysadmin
-        )
-
-    @expose('/<string:workflow_id>', methods=['POST', 'PUT'])
-    def update_workflow(self, workflow_id='0'):
-        """Update workflow info.
-
-        :return:
-        """
-        json_data = request.get_json()
-        list_hide = json_data.get('list_hide', [])
-        form_workflow = dict(
-            flows_name=json_data.get('flows_name', None),
-            itemtype_id=json_data.get('itemtype_id', 0),
-            flow_id=json_data.get('flow_id', 0),
-            index_tree_id=json_data.get('index_id'),
-            location_id=json_data.get('location_id'),
-            open_restricted=json_data.get('open_restricted', False),
-            is_gakuninrdm=json_data.get('is_gakuninrdm')
-        )
-        workflow = WorkFlow()
+        """Index."""
         try:
-            if '0' == workflow_id:
-                """Create new workflow"""
-                form_workflow.update(
-                    flows_id=uuid.uuid4()
-                )
-                workflow.create_workflow(form_workflow)
-                workflow_detail = workflow.get_workflow_by_flows_id(
-                    form_workflow.get('flows_id'))
-                self.save_workflow_role(workflow_detail.id, list_hide)
-            else:
-                """Update the workflow info"""
-                form_workflow.update(
-                    id=json_data.get('id', None),
-                    flows_id=workflow_id
-                )
-                workflow.upt_workflow(form_workflow)
-                self.save_workflow_role(form_workflow.get('id'), list_hide)
-            db.session.commit()
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(e)
-            return jsonify(code=400, msg='Error'), 400
-        return jsonify(code=0, msg='',
-                       data={'redirect': url_for('workflowsetting.index')})
+            form = FlaskForm(request.form)
+            item_type_list = ItemTypes.get_latest_with_item_type(True)
+            # item_type_list = ItemTypes.get_latest(harvesting_type=False)
+            item_type_list = [item for item in item_type_list if item[3] != True]
+            workflow = WorkFlow()
+            workflows = workflow.get_workflow_list()
+            if request.method == 'POST' and form.validate():
+                # Process forms
+                form = request.form.get('submit', None)
+                if form == 'set_workspace_workflow_setting_form':
+                    settings = AdminSettings.get('workspace_workflow_settings')
+                    workFlow_select_flg = request.form.get('registrationRadio', '')
+                    if workFlow_select_flg == '1':
+                        settings.workFlow_select_flg = '1'
+                        settings.item_type_id = request.form.get('itemType', '')
+                    else:
+                        settings.workFlow_select_flg = '0'
+                        settings.work_flow_id = request.form.get('workFlow', '')
 
-    @expose('/<string:workflow_id>', methods=['DELETE'])
-    def delete_workflow(self, workflow_id='0'):
-        """Update workflow info.
+                    AdminSettings.update('workspace_workflow_settings',
+                                         settings.__dict__)
+                    flash(_('WorkSpace WorkFlow Setting was updated.'), category='success')
 
-        :return:
-        """
-        workflow = WorkFlow()
-        if '0' == workflow_id:
-            return jsonify(code=500, msg='No data to delete.',
-                           data={'redirect': url_for('workflowsetting.index')})
-
-        code = 0
-        msg = ''
-        delete_flag = True
-
-        workflow_detail = workflow.get_workflow_by_flows_id(workflow_id)
-        if workflow_detail:
-            activity = WorkActivity()
-            activitys = activity.get_activity_by_workflow_id(workflow_detail.id)
-            if activitys and len(activitys) > 0:
-                for i in activitys:
-                    if i.activity_status not in ['F', 'C']:
-                        delete_flag = False
-                        break
-
-            if delete_flag:
-                """Delete new workflow"""
-                result = workflow.del_workflow(workflow_id)
-                code = result.get('code')
-                msg = result.get('msg')
-            else:
-                code = 500
-                msg = 'Cannot be deleted because workflow is used.'
-
-        return jsonify(code=code, msg=msg,
-                       data={'redirect': url_for('workflowsetting.index')})
-
-    @classmethod
-    def get_name_display_hide(cls, list_hide, role):
-        """Get workflow role: displays, hides.
-
-        :param role:
-        :param list_hide:
-
-        :return: displays, hides.
-        """        
-        displays = []
-        hides = []
-        if isinstance(role, list):
-            for tmp in role:
-                if not any(x.id == tmp.id for x in list_hide):
-                    displays.append(tmp.name)
-                else:
-                    hides.append(tmp.name)
-        return displays, hides
-
-    @classmethod
-    def get_displays(cls, list_hide, role):
-        """Get workflow role: displays.
-
-        :param role:
-        :param list_hide:
-
-        :return: displays.
-        """
-        displays = []
-        if isinstance(role, list):
-            for tmp in role:
-                if not any(x.id == tmp.id for x in list_hide):
-                    displays.append(tmp)
-        return displays
-
-    @classmethod
-    def save_workflow_role(cls, wf_id, list_hide):
-        """Update workflow role.
-
-        :return:
-        """
-        current_app.logger.error("wf_id:{}".format(wf_id))
-        # ['4']
-        current_app.logger.error("list_hide:{}".format(list_hide))
-        with db.session.begin_nested():
-            db.session.query(WorkflowRole).filter_by(
-                workflow_id=wf_id).delete()
-            if isinstance(list_hide, list):
-                while list_hide:
-                    tmp = list_hide.pop(0)
-                    wfrole = dict(
-                        workflow_id=wf_id,
-                        role_id=tmp
-                    )
-                    db.session.execute(WorkflowRole.__table__.insert(), wfrole)
-
-    @classmethod
-    def get_language_workflows(cls, key):
-        """Get language workflows.
-
-        :return:
-        """
-        cur_language = current_i18n.language
-        language = cur_language if cur_language in ['en', 'ja'] else "en"
-        return cls.MULTI_LANGUAGE[key].get(language)
-
+            return self.render('weko_workflow/admin/workspace_workflow_setting.html',
+                               item_type_list=item_type_list,
+                               work_flow_list=workflows,
+                               form=form)
+        except BaseException:
+            current_app.logger.error(
+                'Unexpected error: {}'.format(sys.exc_info()))
+        return abort(400)
 
 workflow_adminview = {
     'view_class': WorkFlowSettingView,

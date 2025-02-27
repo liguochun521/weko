@@ -28,6 +28,12 @@ js_workflow = Bundle(
     output="gen/workflow_workflow.js"
 )
 
+js_workspace = Bundle(
+    'js/weko_workflow/workflow_workspace.js',
+    filters='requirejs',
+    output="gen/workflow_workspace.js"
+)
+
 js_item_link = Bundle(
     'js/weko_workflow/workflow_item_link.js',
     filters='requirejs',
